@@ -8,9 +8,7 @@ import static com.github.ducoral.jutils.XML.*;
 public class Test {
 
     public static void main(String[] args) {
-        List<?> lista = list("string", "1223", json(new JsonMap()));
-        System.out.println(lista);
-        testJSONs();
+        testXMLs();
     }
 
     private static void testJSONs() {
@@ -26,14 +24,6 @@ public class Test {
     }
 
     private static void testXMLs() {
-        Element xml1 = element("raiz");
-        xml1.attributes.addAll(Arrays.asList(attribute("x", "valor x"), attribute("y", "valor y")));
-        xml1.children.add(element("opa", "valor de opa", attribute("z", "valor z")));
-        xml1.children.add(element("tag-vazia"));
-
-        System.out.println(xml1.toString(3));
-        System.out.println();
-
         Element xml2 =
                 element("raiz", attribute("x", "valor x"), attribute("y", "valor y"),
                         element("opa", "valor de opa", attribute("z", "valor z")),

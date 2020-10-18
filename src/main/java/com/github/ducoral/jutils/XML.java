@@ -12,47 +12,34 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.github.ducoral.jutils.Core.*;
 
 public final class XML {
 
-    public static class Attribute {
-        public final String name;
-        public final String value;
-
-        private Attribute(String name, String value) {
-            this.name = name;
-            this.value = value;
-        }
-
-        @Override
-        public String toString() {
-            return name + "=\"" + value + "\"";
-        }
-    }
-
     public static class Element {
         public final String name;
         public final String value;
-        public final List<Attribute> attributes;
+        public final Map<String, String> attributes;
         public final List<Element> children;
 
         private Element(String name, String value) {
             this.name = name;
             this.value = value;
-            attributes = new ArrayList<>();
+            attributes = new HashMap<>();
             children = new ArrayList<>();
         }
 
         private Element(final Node node) {
             name = node.getNodeName();
             value = node.hasChildNodes() ? safe(node.getFirstChild().getNodeValue()) : "";
-            attributes = new ArrayList<Attribute>() {{
+            attributes = new HashMap<String, String>() {{
                 NamedNodeMap map = node.getAttributes();
                 for (int index = 0; index < map.getLength(); index++)
-                    add(new Attribute(map.item(index).getNodeName(), map.item(index).getNodeValue()));
+                    put(map.item(index).getNodeName(), map.item(index).getNodeValue());
             }};
             children = new ArrayList<Element>() {{
                 NodeList list = node.getChildNodes();
@@ -72,10 +59,9 @@ public final class XML {
 
         private String toString(int indent, int level, Element element) {
             String spaces = str(level * indent, ' ');
-            final StringBuilder formatted = new StringBuilder(spaces)
-                    .append('<')
-                    .append(element.name);
-            element.attributes.forEach(attribute -> formatted.append(' ').append(attribute));
+            final StringBuilder formatted = new StringBuilder(spaces).append('<').append(element.name);
+            element.attributes.forEach((name, value) ->
+                    formatted.append(' ').append(name).append("=\"").append(value).append("\""));
             if (element.isEmpty())
                 formatted.append('/');
             formatted.append('>').append(element.value);
@@ -94,8 +80,7 @@ public final class XML {
         @Override
         public String toString() {
             StringBuilder str = new StringBuilder("<").append(name);
-            for (Attribute attribute : attributes)
-                str.append(' ').append(attribute);
+            attributes.forEach((key, value) -> str.append(' ').append(keyValue(key, value)));
             if (isEmpty())
                 str.append("/>");
             else {
@@ -106,6 +91,10 @@ public final class XML {
             }
             return str.toString();
         }
+    }
+
+    private static String keyValue(String key, String value) {
+        return key + "=\"" + value + "\"";
     }
 
     public static Element root(Document document) {
@@ -151,15 +140,15 @@ public final class XML {
                 value = (String) item;
         Element element = new Element(name, value);
         for (Object item : items)
-            if (item instanceof Attribute)
-                element.attributes.add((Attribute) item);
+            if (item instanceof Map)
+                ((Attr) item).set(element.attributes);
             else if (item instanceof Element)
                 element.children.add((Element) item);
         return element;
     }
 
-    public static Attribute attribute(String name, String value) {
-        return new Attribute(name, value);
+    public static Object attribute(String name, String value) {
+        return new Attr(name, value);
     }
 
     private static DocumentBuilder builder() {
@@ -167,6 +156,18 @@ public final class XML {
             return DocumentBuilderFactory.newInstance().newDocumentBuilder();
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    private static class Attr {
+        final String name;
+        final String value;
+        Attr(String name, String value) {
+            this.name = name;
+            this.value = value;
+        }
+        void set(Map<String, String> map) {
+            map.put(name, value);
         }
     }
 
