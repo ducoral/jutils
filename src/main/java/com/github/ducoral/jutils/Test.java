@@ -1,13 +1,31 @@
 package com.github.ducoral.jutils;
 
-import java.util.Arrays;
+import java.util.*;
 
-import static com.github.ducoral.jutils.XMLs.*;
+import static com.github.ducoral.jutils.Core.*;
+import static com.github.ducoral.jutils.XML.*;
 
 public class Test {
 
     public static void main(String[] args) {
+        List<?> lista = list("string", "1223", json(new JsonMap()));
+        System.out.println(lista);
+        testJSONs();
+    }
 
+    private static void testJSONs() {
+        Object map = new JsonMap() {{
+            put("um", 12);
+            put("dois", true);
+            put("três", list("Teste", 10, false, null));
+            put("quatro", "texto");
+        }};
+
+        System.out.println(json(map));
+
+    }
+
+    private static void testXMLs() {
         Element xml1 = element("raiz");
         xml1.attributes.addAll(Arrays.asList(attribute("x", "valor x"), attribute("y", "valor y")));
         xml1.children.add(element("opa", "valor de opa", attribute("z", "valor z")));

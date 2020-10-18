@@ -14,13 +14,13 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.github.ducoral.jutils.Strings.*;
+import static com.github.ducoral.jutils.Core.*;
 
-public final class XMLs {
+public final class XML {
 
     public static class Attribute {
-        final String name;
-        final String value;
+        public final String name;
+        public final String value;
 
         private Attribute(String name, String value) {
             this.name = name;
@@ -87,8 +87,8 @@ public final class XMLs {
             return formatted.toString();
         }
 
-        public String toString(int ident) {
-            return toString(ident,0,this);
+        public String toString(int indent) {
+            return toString(indent,0,this);
         }
 
         @Override
@@ -170,6 +170,6 @@ public final class XMLs {
         }
     }
 
-    private XMLs() {
+    private XML() {
     }
 }
