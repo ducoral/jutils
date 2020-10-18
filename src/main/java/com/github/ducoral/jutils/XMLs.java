@@ -1,5 +1,6 @@
 package com.github.ducoral.jutils;
 
+import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -105,6 +106,10 @@ public final class XMLs {
             }
             return str.toString();
         }
+    }
+
+    public static Element root(Document document) {
+        return new Element(document.getDocumentElement());
     }
 
     public static Element root(InputStream xml) {
