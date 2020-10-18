@@ -52,22 +52,28 @@ public final class Core {
 
     private static String json(List<?> list) {
         StringBuilder array = new StringBuilder("[");
-        String comma = "";
-        for (Object value : list) {
-            array.append(comma).append(json(value));
-            comma = ",";
-        }
+        final Comma comma = new Comma();
+        list.forEach(value -> array.append(comma).append(json(value)));
         return array.append("]").toString();
     }
 
     private static String json(Map<?, ?> map) {
         StringBuilder object = new StringBuilder("{");
-        String comma = "";
-        for (Map.Entry<?, ?> entry : map.entrySet()) {
-            object.append(comma).append(json(entry.getKey())).append(':').append(json(entry.getValue()));
-            comma = ",";
-        }
+        final Comma comma = new Comma();
+        map.forEach((key, value) -> object
+                .append(comma)
+                .append(json(key))
+                .append(':')
+                .append(json(value)));
         return object.append("}").toString();
+    }
+
+    private static class Comma {
+        int time = 0;
+        @Override
+        public String toString() {
+            return time++ == 0 ? "" : ",";
+        }
     }
 
     private Core() {

@@ -8,7 +8,7 @@ import static com.github.ducoral.jutils.XML.*;
 public class Test {
 
     public static void main(String[] args) {
-        testXMLs();
+        testJSONs();
     }
 
     private static void testJSONs() {
