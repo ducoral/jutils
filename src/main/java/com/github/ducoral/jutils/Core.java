@@ -1,6 +1,8 @@
 package com.github.ducoral.jutils;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 public final class Core {
     public enum Align { LEFT, CENTER, RIGHT}
@@ -68,7 +70,7 @@ public final class Core {
         return object.append("}").toString();
     }
 
-    private static class Comma {
+    public static class Comma {
         int time = 0;
         @Override
         public String toString() {

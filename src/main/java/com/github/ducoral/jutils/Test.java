@@ -1,5 +1,6 @@
 package com.github.ducoral.jutils;
 
+import javax.crypto.spec.PSource;
 import java.util.*;
 
 import static com.github.ducoral.jutils.Core.*;
@@ -8,7 +9,11 @@ import static com.github.ducoral.jutils.XML.*;
 public class Test {
 
     public static void main(String[] args) {
-        testJSONs();
+        Comma comma = new Comma();
+        System.out.println("1a: " + comma);
+        System.out.println("2a: " + comma);
+        System.out.println("3a: " + comma);
+        System.out.println("4a: " + comma);
     }
 
     private static void testJSONs() {
