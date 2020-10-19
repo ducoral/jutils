@@ -149,7 +149,7 @@ public final class Core {
         return st;
     }
 
-    public static Scope scope(Scope scope, String alias, ResultSet resultSet) {
+    public static Scope populate(Scope scope, String alias, ResultSet resultSet) {
         try {
             alias = alias.isEmpty() ? "" : alias + ".";
             ResultSetMetaData metaData = resultSet.getMetaData();
