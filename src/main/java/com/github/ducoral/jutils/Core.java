@@ -1,5 +1,7 @@
 package com.github.ducoral.jutils;
 
+import com.sun.org.apache.xml.internal.security.utils.resolver.implementations.ResolverLocalFilesystem;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URL;
@@ -149,6 +151,19 @@ public final class Core {
             throw new Oops(e.getMessage(), e);
         }
         return st;
+    }
+
+    public static void scope(Map<String, Object> scope, String alias, ResultSet resultSet) {
+        try {
+            alias = alias.isEmpty() ? "" : alias + ".";
+            ResultSetMetaData metaData = resultSet.getMetaData();
+            for (int index = 1; index <= metaData.getColumnCount(); index++) {
+                String column = metaData.getColumnName(index);
+                scope.put(alias + column, resultSet.getObject(column));
+            }
+        } catch (Exception e) {
+            throw new Oops(e.getMessage(), e);
+        }
     }
 
     private Core() {
