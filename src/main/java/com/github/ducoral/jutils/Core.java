@@ -163,7 +163,7 @@ public final class Core {
         }
     }
 
-    public static Scope clone(Scope scope) {
+    public static Scope duplicate(Scope scope) {
         return new Scope() {{
            putAll(scope);
         }};
