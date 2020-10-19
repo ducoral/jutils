@@ -1,13 +1,9 @@
 package com.github.ducoral.jutils;
 
-import com.sun.org.apache.xml.internal.security.utils.resolver.implementations.ResolverLocalFilesystem;
-
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.net.URL;
 import java.sql.*;
 import java.util.*;
-import java.util.function.BooleanSupplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,7 +13,7 @@ public final class Core {
 
     public enum Align { LEFT, CENTER, RIGHT}
 
-    public static class JsonMap extends HashMap<String, Object> { }
+    public static class Scope extends HashMap<String, Object> { }
 
     public static class Comma {
         int time = 0;
@@ -153,7 +149,7 @@ public final class Core {
         return st;
     }
 
-    public static void scope(Map<String, Object> scope, String alias, ResultSet resultSet) {
+    public static Scope scope(Scope scope, String alias, ResultSet resultSet) {
         try {
             alias = alias.isEmpty() ? "" : alias + ".";
             ResultSetMetaData metaData = resultSet.getMetaData();
@@ -161,9 +157,16 @@ public final class Core {
                 String column = metaData.getColumnName(index);
                 scope.put(alias + column, resultSet.getObject(column));
             }
+            return scope;
         } catch (Exception e) {
             throw new Oops(e.getMessage(), e);
         }
+    }
+
+    public static Scope clone(Scope scope) {
+        return new Scope() {{
+           putAll(scope);
+        }};
     }
 
     private Core() {
