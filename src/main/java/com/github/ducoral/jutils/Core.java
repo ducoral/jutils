@@ -1,13 +1,24 @@
 package com.github.ducoral.jutils;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public final class Core {
+
+    public static final Pattern PARAM_PATTERN = Pattern.compile(paramRegex("((\\w+\\.)?\\w+)"));
+
     public enum Align { LEFT, CENTER, RIGHT}
 
     public static class JsonMap extends HashMap<String, Object> { }
+
+    public static class Comma {
+        int time = 0;
+        @Override
+        public String toString() {
+            return time++ == 0 ? "" : ",";
+        }
+    }
 
     @SafeVarargs
     public static <T> List<T> list(T... values) {
@@ -70,12 +81,18 @@ public final class Core {
         return object.append("}").toString();
     }
 
-    public static class Comma {
-        int time = 0;
-        @Override
-        public String toString() {
-            return time++ == 0 ? "" : ",";
+    public static String params(String string, List<String> params) {
+        Matcher matcher = PARAM_PATTERN.matcher(string);
+        while (matcher.find()) {
+            String param = matcher.group(1);
+            params.add(param);
+            string = string.replaceFirst(paramRegex(param), "?");
         }
+        return string;
+    }
+
+    private static String paramRegex(String fieldRegex) {
+        return String.format("\\$\\{%s}", fieldRegex);
     }
 
     private Core() {
