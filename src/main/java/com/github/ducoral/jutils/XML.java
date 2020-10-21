@@ -140,7 +140,7 @@ public final class XML {
                 value = (String) item;
         Element element = new Element(name, value);
         for (Object item : items)
-            if (item instanceof Map)
+            if (item instanceof Attr)
                 ((Attr) item).set(element.attributes);
             else if (item instanceof Element)
                 element.children.add((Element) item);

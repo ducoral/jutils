@@ -7,9 +7,18 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.lang.String.format;
+import static java.util.regex.Pattern.compile;
+
 public final class Core {
 
-    public static final Pattern PARAM_PATTERN = Pattern.compile(String.format("\\$\\{%s}", "((\\w+\\.)?\\w+)"));
+    public static final String PARAM_REGEX_TEMPLATE = "\\$\\{%s}";
+
+    public static final String DOTED_IDENTIFIER_REGEX = "((\\w+\\.)?\\w+)";
+
+    public static final int DOTED_IDENTIFIER_GROUP = 1;
+
+    public static final Pattern PARAM_PATTERN = compile(format(PARAM_REGEX_TEMPLATE, DOTED_IDENTIFIER_REGEX));
 
     public enum Align { LEFT, CENTER, RIGHT}
 
@@ -84,14 +93,14 @@ public final class Core {
         return object.append("}").toString();
     }
 
-    public static String parseParameters(String string, List<String> params) {
-        Matcher matcher = PARAM_PATTERN.matcher(string);
+    public static String extractParams(String template, List<String> params) {
+        Matcher matcher = PARAM_PATTERN.matcher(template);
         while (matcher.find()) {
-            String param = matcher.group(1);
+            String param = matcher.group(DOTED_IDENTIFIER_GROUP);
             params.add(param);
-            string = string.replaceFirst(String.format("\\$\\{%s}", param), "?");
+            template = template.replaceFirst(format(PARAM_REGEX_TEMPLATE, param), "?");
         }
-        return string;
+        return template;
     }
 
     public static PreparedStatement prepare(PreparedStatement st, List<String> params, Map<String, Object> scope) {
