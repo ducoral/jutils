@@ -14,11 +14,11 @@ public final class Core {
 
     public static final String PARAM_REGEX_TEMPLATE = "\\$\\{%s}";
 
-    public static final String DOTED_IDENTIFIER_REGEX = "((\\w+\\.)?\\w+)";
+    public static final String DOTTED_IDENTIFIER_REGEX = "((\\w+\\.)?\\w+)";
 
-    public static final int DOTED_IDENTIFIER_GROUP = 1;
+    public static final int DOTTED_IDENTIFIER_GROUP = 1;
 
-    public static final Pattern PARAM_PATTERN = compile(format(PARAM_REGEX_TEMPLATE, DOTED_IDENTIFIER_REGEX));
+    public static final Pattern PARAM_PATTERN = compile(format(PARAM_REGEX_TEMPLATE, DOTTED_IDENTIFIER_REGEX));
 
     public enum Align { LEFT, CENTER, RIGHT}
 
@@ -96,7 +96,7 @@ public final class Core {
     public static String extractParams(String template, List<String> params) {
         Matcher matcher = PARAM_PATTERN.matcher(template);
         while (matcher.find()) {
-            String param = matcher.group(DOTED_IDENTIFIER_GROUP);
+            String param = matcher.group(DOTTED_IDENTIFIER_GROUP);
             params.add(param);
             template = template.replaceFirst(format(PARAM_REGEX_TEMPLATE, param), "?");
         }
