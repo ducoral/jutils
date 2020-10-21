@@ -84,7 +84,7 @@ public final class Core {
         return object.append("}").toString();
     }
 
-    public static String params(String string, List<String> params) {
+    public static String parseParameters(String string, List<String> params) {
         Matcher matcher = PARAM_PATTERN.matcher(string);
         while (matcher.find()) {
             String param = matcher.group(1);
@@ -149,13 +149,12 @@ public final class Core {
         return st;
     }
 
-    public static Scope populate(Scope scope, String alias, ResultSet resultSet) {
+    public static Scope populate(Scope scope, ResultSet resultSet) {
         try {
-            alias = alias.isEmpty() ? "" : alias + ".";
             ResultSetMetaData metaData = resultSet.getMetaData();
             for (int index = 1; index <= metaData.getColumnCount(); index++) {
                 String column = metaData.getColumnName(index);
-                scope.put(alias + column, resultSet.getObject(column));
+                scope.put(column, resultSet.getObject(column));
             }
             return scope;
         } catch (Exception e) {
@@ -163,9 +162,11 @@ public final class Core {
         }
     }
 
-    public static Scope duplicate(Scope scope) {
+    public static Scope duplicate(Scope scope, final String alias) {
         return new Scope() {{
-           putAll(scope);
+            String prefix = alias == null || alias.isEmpty() ? "" : alias + ".";
+            for (Entry<String, Object> entry : scope.entrySet())
+                put(prefix + entry.getKey(), entry.getValue());
         }};
     }
 
