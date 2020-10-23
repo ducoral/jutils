@@ -202,12 +202,18 @@ public final class Core {
     }
 
     public static Map<String, Object> map(ResultSet resultSet) {
+        return map(resultSet, null);
+    }
+
+    public static Map<String, Object> map(ResultSet resultSet, String alias) {
         try {
             return new HashMap<String, Object>() {{
                 ResultSetMetaData metaData = resultSet.getMetaData();
                 for (int index = 1; index <= metaData.getColumnCount(); index++) {
                     String column = metaData.getColumnName(index);
                     put(column, resultSet.getObject(column));
+                    if (!safe(alias).isEmpty())
+                        put(alias + "." + column, resultSet.getObject(column));
                 }
             }};
         } catch (Exception e) {
