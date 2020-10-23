@@ -3,14 +3,21 @@ package com.github.ducoral.jutils;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.sql.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static java.lang.String.format;
 import static java.util.regex.Pattern.compile;
+import static java.util.Map.*;
+import static java.util.AbstractMap.*;
 
 public final class Core {
+
+    public static final String JSON_TIME_FORMAT = "hh:mm:ss";
+
+    public static final String JSON_DATETIME_FORMAT = "yyyy-MM-dd " + JSON_TIME_FORMAT;
 
     public static final String PARAM_REGEX_TEMPLATE = "\\$\\{%s}";
 
@@ -62,6 +69,14 @@ public final class Core {
         }
     }
 
+    public static String format(String format, Object args) {
+        return java.lang.String.format(format, args);
+    }
+
+    public static String format(Date date, String format) {
+        return new SimpleDateFormat(format).format(date);
+    }
+
     public static boolean isOneOf(String value, String... values) {
         for (String item : values)
             if (Objects.equals(value, item))
@@ -74,6 +89,10 @@ public final class Core {
             return json((List<?>) value);
         else if (value instanceof Map)
             return json((Map<?,?>) value);
+        else if (value instanceof Time)
+            return json(format((Time) value, JSON_TIME_FORMAT));
+        else if (value instanceof Date)
+            return json(format((Date) value, JSON_DATETIME_FORMAT));
         else {
             String str = String.valueOf(value);
             return value instanceof String ? '"' + str + '"' : str;
@@ -171,6 +190,17 @@ public final class Core {
         }
     }
 
+    public static Entry<String, Object> entry(String key, Object value) {
+        return new SimpleEntry<>(key, value);
+    }
+
+    public static Map<String, Object> map(Entry<String, Object>... entries) {
+        return new HashMap<String, Object>() {{
+            for (Entry<String, Object> entry : entries)
+                put(entry.getKey(), entry.getValue());
+        }};
+    }
+
     public static Map<String, Object> map(ResultSet resultSet) {
         try {
             return new HashMap<String, Object>() {{
@@ -183,6 +213,13 @@ public final class Core {
         } catch (Exception e) {
             throw new Oops(e.getMessage(), e);
         }
+    }
+
+    public static <K, V> Map<K, V> merge(Map<K, V> map1, Map<K, V> map2) {
+        Map<K, V> merged = new HashMap<>();
+        merged.putAll(map1);
+        merged.putAll(map2);
+        return merged;
     }
 
     public static Map<String, Object> duplicate(Map<String, Object> map, final String prefix) {
