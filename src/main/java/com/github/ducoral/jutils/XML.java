@@ -11,10 +11,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
 import java.io.InputStream;
 import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.github.ducoral.jutils.Core.*;
 
@@ -91,6 +88,10 @@ public final class XML {
             }
             return str.toString();
         }
+
+        public String attribute(String name) {
+            return attributes.getOrDefault(name, "");
+        }
     }
 
     private static String keyValue(String key, String value) {
@@ -149,6 +150,20 @@ public final class XML {
 
     public static Object attribute(String name, String value) {
         return new Attr(name, value);
+    }
+
+    public static Element accept(Iterator<Element> iterator, String... tags) {
+        if (iterator.hasNext())
+            return accept(iterator.next(), tags);
+        else
+            throw new Oops("TAG faltante: %s", tags);
+    }
+
+    public static Element accept(XML.Element element, String... tags) {
+        if (isOneOf(element.name, tags))
+            return element;
+        else
+            throw new Oops("Era esperada a TAG %s porém encontrou %s", element.name, tags);
     }
 
     private static DocumentBuilder builder() {

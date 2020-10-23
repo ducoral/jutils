@@ -17,7 +17,7 @@ public class Test {
     }
 
     private static void testJSONs() {
-        Object map = new Scope() {{
+        Object map = new HashMap<String, Object>() {{
             put("um", 12);
             put("dois", true);
             put("três", list("Teste", 10, false, null));

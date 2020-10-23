@@ -22,8 +22,6 @@ public final class Core {
 
     public enum Align { LEFT, CENTER, RIGHT}
 
-    public static class Scope extends HashMap<String, Object> { }
-
     public static class Comma {
         int time = 0;
         @Override
@@ -64,6 +62,13 @@ public final class Core {
         }
     }
 
+    public static boolean isOneOf(String value, String... values) {
+        for (String item : values)
+            if (Objects.equals(value, item))
+                return true;
+        return false;
+    }
+
     public static String json(Object value) {
         if (value instanceof List)
             return json((List<?>) value);
@@ -93,7 +98,7 @@ public final class Core {
         return object.append("}").toString();
     }
 
-    public static String extractParams(String template, List<String> params) {
+    public static String extractParameters(String template, List<String> params) {
         Matcher matcher = PARAM_PATTERN.matcher(template);
         while (matcher.find()) {
             String param = matcher.group(DOTTED_IDENTIFIER_GROUP);
@@ -158,24 +163,33 @@ public final class Core {
         return st;
     }
 
-    public static Scope populate(Scope scope, ResultSet resultSet) {
+    public static boolean next(ResultSet rs) {
         try {
-            ResultSetMetaData metaData = resultSet.getMetaData();
-            for (int index = 1; index <= metaData.getColumnCount(); index++) {
-                String column = metaData.getColumnName(index);
-                scope.put(column, resultSet.getObject(column));
-            }
-            return scope;
+            return rs.next();
+        } catch (SQLException e) {
+            throw new Oops(e.getMessage(), e);
+        }
+    }
+
+    public static Map<String, Object> map(ResultSet resultSet) {
+        try {
+            return new HashMap<String, Object>() {{
+                ResultSetMetaData metaData = resultSet.getMetaData();
+                for (int index = 1; index <= metaData.getColumnCount(); index++) {
+                    String column = metaData.getColumnName(index);
+                    put(column, resultSet.getObject(column));
+                }
+            }};
         } catch (Exception e) {
             throw new Oops(e.getMessage(), e);
         }
     }
 
-    public static Scope duplicate(Scope scope, final String alias) {
-        return new Scope() {{
-            String prefix = alias == null || alias.isEmpty() ? "" : alias + ".";
-            for (Entry<String, Object> entry : scope.entrySet())
-                put(prefix + entry.getKey(), entry.getValue());
+    public static Map<String, Object> duplicate(Map<String, Object> map, final String prefix) {
+        return new HashMap<String, Object>() {{
+            String dotted = prefix == null || prefix.isEmpty() ? "" : prefix + ".";
+            for (Entry<String, Object> entry : map.entrySet())
+                put(dotted + entry.getKey(), entry.getValue());
         }};
     }
 
