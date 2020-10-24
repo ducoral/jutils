@@ -6,12 +6,11 @@ import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.*;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static java.util.regex.Pattern.compile;
-import static java.util.Map.*;
-import static java.util.AbstractMap.*;
 
 public final class Core {
 
@@ -29,17 +28,17 @@ public final class Core {
 
     public enum Align { LEFT, CENTER, RIGHT}
 
-    public static class Comma {
-        int time = 0;
-        @Override
-        public String toString() {
-            return time++ == 0 ? "" : ",";
-        }
+    public static Object secondTimeReturns(String value) {
+        return new Object() {
+            int time = 0;
+            public String toString() {
+                return time++ == 0 ? "" : value;
+            }
+        };
     }
 
-    @SafeVarargs
-    public static <T> List<T> list(T... values) {
-        return new ArrayList<T>() {{
+    public static List<Object> list(Object... values) {
+        return new ArrayList<Object>() {{
             addAll(Arrays.asList(values));
         }};
     }
@@ -101,14 +100,14 @@ public final class Core {
 
     private static String json(List<?> list) {
         StringBuilder array = new StringBuilder("[");
-        final Comma comma = new Comma();
+        Object comma = secondTimeReturns(",");
         list.forEach(value -> array.append(comma).append(json(value)));
         return array.append("]").toString();
     }
 
     private static String json(Map<?, ?> map) {
         StringBuilder object = new StringBuilder("{");
-        final Comma comma = new Comma();
+        Object comma = secondTimeReturns(",");
         map.forEach((key, value) -> object
                 .append(comma)
                 .append(json(key))
@@ -117,7 +116,7 @@ public final class Core {
         return object.append("}").toString();
     }
 
-    public static String extractParameters(String template, List<String> params) {
+    public static String extract(String template, List<String> params) {
         Matcher matcher = PARAM_PATTERN.matcher(template);
         while (matcher.find()) {
             String param = matcher.group(DOTTED_IDENTIFIER_GROUP);
@@ -190,49 +189,47 @@ public final class Core {
         }
     }
 
-    public static Entry<String, Object> entry(String key, Object value) {
-        return new SimpleEntry<>(key, value);
+    public interface MapBuilder {
+        MapBuilder pair(Object key, Object value);
+        Map<Object, Object> done();
     }
 
-    public static Map<String, Object> map(Entry<String, Object>... entries) {
-        return new HashMap<String, Object>() {{
-            for (Entry<String, Object> entry : entries)
-                put(entry.getKey(), entry.getValue());
-        }};
+    public static MapBuilder map() {
+        return new MapBuilder() {
+            final Map<Object, Object> map = new HashMap<>();
+            public MapBuilder pair(Object key, Object value) {
+                map.put(key, value);
+                return this;
+            }
+            public Map<Object, Object> done() {
+                return map;
+            }
+        };
     }
 
-    public static Map<String, Object> map(ResultSet resultSet) {
-        return map(resultSet, null);
-    }
-
-    public static Map<String, Object> map(ResultSet resultSet, String alias) {
+    public static Map<Object, Object> map(ResultSet rs) {
         try {
-            return new HashMap<String, Object>() {{
-                ResultSetMetaData metaData = resultSet.getMetaData();
-                for (int index = 1; index <= metaData.getColumnCount(); index++) {
-                    String column = metaData.getColumnName(index);
-                    put(column, resultSet.getObject(column));
-                    if (!safe(alias).isEmpty())
-                        put(alias + "." + column, resultSet.getObject(column));
-                }
+            return new HashMap<Object, Object>() {{
+                ResultSetMetaData metaData = rs.getMetaData();
+                for (int index = 1; index <= metaData.getColumnCount(); index++)
+                    put(metaData.getColumnName(index), rs.getObject(index));
             }};
         } catch (Exception e) {
             throw new Oops(e.getMessage(), e);
         }
     }
 
-    public static <K, V> Map<K, V> merge(Map<K, V> map1, Map<K, V> map2) {
-        Map<K, V> merged = new HashMap<>();
+    public static Map<Object, Object> merge(Map<Object, Object> map1, Map<Object, Object> map2) {
+        Map<Object, Object> merged = new HashMap<>();
         merged.putAll(map1);
         merged.putAll(map2);
         return merged;
     }
 
-    public static Map<String, Object> duplicate(Map<String, Object> map, final String prefix) {
-        return new HashMap<String, Object>() {{
-            String dotted = prefix == null || prefix.isEmpty() ? "" : prefix + ".";
-            for (Entry<String, Object> entry : map.entrySet())
-                put(dotted + entry.getKey(), entry.getValue());
+    public static Map<Object, Object> rename(Map<Object, Object> map, Function<Object, Object> renameFunction) {
+        return new HashMap<Object, Object>() {{
+            for (Entry<Object, Object> entry : map.entrySet())
+                put(renameFunction.apply(entry.getKey()), entry.getValue());
         }};
     }
 
