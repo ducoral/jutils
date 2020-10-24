@@ -129,11 +129,11 @@ public final class JDBC {
         return execute(connection, "drop table " + table + " if exists");
     }
 
-    public static void insert(Connection connection, String table, Object... values) {
+    public static boolean insert(Connection connection, String table, Object... values) {
         StringBuilder sql = new StringBuilder("insert into ").append(table).append(" values(");
         Object comma = secondTimeReturns(", ");
         times(values.length, () -> sql.append(comma).append('?'));
-        execute(connection, sql.append(')'), values);
+        return execute(connection, sql.append(')'), values);
     }
 
     public static boolean update(Connection connection, String table, String condition, Map<Object, Object> values) {
@@ -156,6 +156,118 @@ public final class JDBC {
     public static boolean next(ResultSet rs) {
         try {
             return rs.next();
+        } catch (Exception e) {
+            throw new Oops(e.getMessage(), e);
+        }
+    }
+
+    public static byte[] getBytes(ResultSet rs, String column) {
+        try {
+            return rs.getBytes(column);
+        } catch (Exception e) {
+            throw new Oops(e.getMessage(), e);
+        }
+    }
+
+    public static String getString(ResultSet rs, String column) {
+        try {
+            return rs.getString(column);
+        } catch (Exception e) {
+            throw new Oops(e.getMessage(), e);
+        }
+    }
+
+    public static Short getShort(ResultSet rs, String column) {
+        try {
+            return rs.getShort(column);
+        } catch (Exception e) {
+            throw new Oops(e.getMessage(), e);
+        }
+    }
+
+    public static Integer getInteger(ResultSet rs, String column) {
+        try {
+            return rs.getInt(column);
+        } catch (Exception e) {
+            throw new Oops(e.getMessage(), e);
+        }
+    }
+
+    public static Long getLong(ResultSet rs, String column) {
+        try {
+            return rs.getLong(column);
+        } catch (Exception e) {
+            throw new Oops(e.getMessage(), e);
+        }
+    }
+
+    public static Float getFloat(ResultSet rs, String column) {
+        try {
+            return rs.getFloat(column);
+        } catch (Exception e) {
+            throw new Oops(e.getMessage(), e);
+        }
+    }
+
+    public static Double getDouble(ResultSet rs, String column) {
+        try {
+            return rs.getDouble(column);
+        } catch (Exception e) {
+            throw new Oops(e.getMessage(), e);
+        }
+    }
+
+    public static BigDecimal getBigDecimal(ResultSet rs, String column) {
+        try {
+            return rs.getBigDecimal(column);
+        } catch (Exception e) {
+            throw new Oops(e.getMessage(), e);
+        }
+    }
+
+    public static Date getDate(ResultSet rs, String column) {
+        try {
+            return rs.getDate(column);
+        } catch (Exception e) {
+            throw new Oops(e.getMessage(), e);
+        }
+    }
+
+    public static Time getTime(ResultSet rs, String column) {
+        try {
+            return rs.getTime(column);
+        } catch (Exception e) {
+            throw new Oops(e.getMessage(), e);
+        }
+    }
+
+    public static Boolean getBoolean(ResultSet rs, String column) {
+        try {
+            return rs.getBoolean(column);
+        } catch (Exception e) {
+            throw new Oops(e.getMessage(), e);
+        }
+    }
+
+    public static Object getObject(ResultSet rs, String column) {
+        try {
+            return rs.getObject(column);
+        } catch (Exception e) {
+            throw new Oops(e.getMessage(), e);
+        }
+    }
+
+    public static Blob getBlob(ResultSet rs, String column) {
+        try {
+            return rs.getBlob(column);
+        } catch (Exception e) {
+            throw new Oops(e.getMessage(), e);
+        }
+    }
+
+    public static Clob getClob(ResultSet rs, String column) {
+        try {
+            return rs.getClob(column);
         } catch (Exception e) {
             throw new Oops(e.getMessage(), e);
         }
