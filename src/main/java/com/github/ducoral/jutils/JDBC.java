@@ -37,7 +37,7 @@ public final class JDBC {
 
     public static PreparedStatement parameter(PreparedStatement st, Object... args) {
         for (int index = 0; index < args.length; index++)
-            parameter(st, index, args[index]);
+            parameter(st, index + 1, args[index]);
         return st;
     }
 
