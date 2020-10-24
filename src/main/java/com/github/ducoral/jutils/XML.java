@@ -156,7 +156,7 @@ public final class XML {
         if (iterator.hasNext())
             return accept(iterator.next(), tags);
         else
-            throw new Oops("TAG faltante: %s", tags);
+            throw new Oops("TAG faltante: %s", Arrays.asList(tags).toArray());
     }
 
     public static Element accept(XML.Element element, String... tags) {

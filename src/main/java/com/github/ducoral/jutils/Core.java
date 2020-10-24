@@ -1,7 +1,5 @@
 package com.github.ducoral.jutils;
 
-import java.math.BigDecimal;
-import java.net.URL;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -33,6 +31,25 @@ public final class Core {
             int time = 0;
             public String toString() {
                 return time++ == 0 ? "" : value;
+            }
+        };
+    }
+
+    public interface Appendable {
+        Appendable append(Object... values);
+    }
+
+    public static Appendable appendable(String separator) {
+        return new Appendable() {
+            final StringBuilder builder = new StringBuilder();
+            final Object delimiter = secondTimeReturns(separator);
+            public Appendable append(Object... values) {
+                for (Object value : values)
+                    builder.append(delimiter).append(value);
+                return this;
+            }
+            public String toString() {
+                return builder.toString();
             }
         };
     }
@@ -116,7 +133,7 @@ public final class Core {
         return object.append("}").toString();
     }
 
-    public static String extract(String template, List<String> params) {
+    public static String extract(String template, List<Object> params) {
         Matcher matcher = PARAM_PATTERN.matcher(template);
         while (matcher.find()) {
             String param = matcher.group(DOTTED_IDENTIFIER_GROUP);
@@ -126,67 +143,14 @@ public final class Core {
         return template;
     }
 
-    public static PreparedStatement prepare(PreparedStatement st, List<String> params, Map<String, Object> scope) {
-        try {
-            for (int index = 0; index < params.size(); index++) {
-                Object value = scope.get(params.get(index));
-                if (value == null)
-                    st.setNull(index, Types.NULL);
-                else if (value instanceof Byte)
-                    st.setByte(index, (Byte) value);
-                else if (value instanceof Short)
-                    st.setShort(index, (Short) value);
-                else if (value instanceof Integer)
-                    st.setInt(index, (Integer) value);
-                else if (value instanceof Long)
-                    st.setLong(index, (Long) value);
-                else if (value instanceof Float)
-                    st.setFloat(index, (Float) value);
-                else if (value instanceof Double)
-                    st.setDouble(index, (Double) value);
-                else if (value instanceof BigDecimal)
-                    st.setBigDecimal(index, (BigDecimal) value);
-                else if (value instanceof String)
-                    st.setString(index, (String) value);
-                else if (value instanceof java.sql.Date)
-                    st.setDate(index, (java.sql.Date) value);
-                else if (value instanceof java.sql.Time)
-                    st.setTime(index, (java.sql.Time) value);
-                else if (value instanceof java.sql.Timestamp)
-                    st.setTimestamp(index, (java.sql.Timestamp) value);
-                else if (value instanceof Boolean)
-                    st.setBoolean(index, (Boolean) value);
-                else if (value instanceof byte[])
-                    st.setBytes(index, (byte[]) value);
-                else if (value instanceof Ref)
-                    st.setRef(index, ((Ref) value));
-                else if (value instanceof NClob)
-                    st.setNClob(index, (NClob) value);
-                else if (value instanceof Clob)
-                    st.setClob(index, (Clob) value);
-                else if (value instanceof Blob)
-                    st.setBlob(index, (Blob) value);
-                else if (value instanceof Array)
-                    st.setArray(index, (Array) value);
-                else if (value instanceof URL)
-                    st.setURL(index, (URL) value);
-                else if (value instanceof SQLXML)
-                    st.setSQLXML(index, (SQLXML) value);
-                else
-                    st.setObject(index, value);
-            }
-        } catch (Exception e) {
-            throw new Oops(e.getMessage(), e);
-        }
-        return st;
+    @FunctionalInterface
+    public interface Command {
+        void execute();
     }
 
-    public static boolean next(ResultSet rs) {
-        try {
-            return rs.next();
-        } catch (SQLException e) {
-            throw new Oops(e.getMessage(), e);
-        }
+    public static void times(int times, Command command) {
+        for (int i = 0; i < times; i++)
+            command.execute();
     }
 
     public interface MapBuilder {
