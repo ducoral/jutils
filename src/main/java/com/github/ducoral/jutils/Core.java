@@ -153,6 +153,13 @@ public final class Core {
             command.execute();
     }
 
+    public static List<Object> values(List<Object> keys, Map<Object, Object> map) {
+        return new ArrayList<Object>() {{
+            for (Object key : keys)
+                add(map.get(key));
+        }};
+    }
+
     public interface MapBuilder {
         MapBuilder pair(Object key, Object value);
         Map<Object, Object> done();
@@ -176,7 +183,7 @@ public final class Core {
             return new HashMap<Object, Object>() {{
                 ResultSetMetaData metaData = rs.getMetaData();
                 for (int index = 1; index <= metaData.getColumnCount(); index++)
-                    put(metaData.getColumnName(index), rs.getObject(index));
+                    put(metaData.getColumnName(index).toLowerCase() g , rs.getObject(index));
             }};
         } catch (Exception e) {
             throw new Oops(e.getMessage(), e);
