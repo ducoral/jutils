@@ -93,6 +93,14 @@ public final class Core {
         return new SimpleDateFormat(format).format(date);
     }
 
+    public static String lower(Object value) {
+        return String.valueOf(value).toLowerCase();
+    }
+
+    public static String upper(Object value) {
+        return String.valueOf(value).toUpperCase();
+    }
+
     public static boolean isOneOf(String value, String... values) {
         for (String item : values)
             if (Objects.equals(value, item))
@@ -153,7 +161,7 @@ public final class Core {
             command.execute();
     }
 
-    public static List<Object> values(List<Object> keys, Map<Object, Object> map) {
+    public static List<Object> values(List<Object> keys, Map<String, Object> map) {
         return new ArrayList<Object>() {{
             for (Object key : keys)
                 add(map.get(key));
@@ -161,26 +169,39 @@ public final class Core {
     }
 
     public interface MapBuilder {
-        MapBuilder pair(Object key, Object value);
-        Map<Object, Object> done();
+        MapBuilder pair(String key, Object value);
+        MapBuilder ignoreKeyCase();
+        Map<String, Object> done();
     }
 
     public static MapBuilder map() {
         return new MapBuilder() {
-            final Map<Object, Object> map = new HashMap<>();
-            public MapBuilder pair(Object key, Object value) {
+            final Map<String, Object> map = new HashMap<>();
+            boolean ignoreKeyCase = false;
+
+            public MapBuilder pair(String key, Object value) {
                 map.put(key, value);
                 return this;
             }
-            public Map<Object, Object> done() {
-                return map;
+
+            public MapBuilder ignoreKeyCase() {
+                ignoreKeyCase = true;
+                return this;
+            }
+
+            public Map<String, Object> done() {
+                return ignoreKeyCase ? Core.ignoreKeyCase(map) : map;
             }
         };
     }
 
-    public static Map<Object, Object> map(ResultSet rs) {
+    public static Map<String, Object> ignoreKeyCase(Map<String, Object> map) {
+        return new IgnoreCaseHashMap(map);
+    }
+
+    public static Map<String, Object> map(ResultSet rs) {
         try {
-            return new HashMap<Object, Object>() {{
+            return new HashMap<String, Object>() {{
                 ResultSetMetaData metaData = rs.getMetaData();
                 for (int index = 1; index <= metaData.getColumnCount(); index++)
                     put(metaData.getColumnName(index).toLowerCase(), rs.getObject(index));
@@ -190,19 +211,20 @@ public final class Core {
         }
     }
 
-    public static Map<Object, Object> merge(Map<Object, Object> map1, Map<Object, Object> map2) {
-        Map<Object, Object> merged = new HashMap<>();
+    public static Map<String, Object> merge(Map<String, Object> map1, Map<String, Object> map2) {
+        Map<String, Object> merged = new HashMap<>();
         merged.putAll(map1);
         merged.putAll(map2);
         return merged;
     }
 
-    public static Map<Object, Object> rename(Map<Object, Object> map, Function<Object, Object> renameFunction) {
-        return new HashMap<Object, Object>() {{
-            for (Entry<Object, Object> entry : map.entrySet())
+    public static Map<String, Object> rename(Map<String, Object> map, Function<String, String> renameFunction) {
+        return new HashMap<String, Object>() {{
+            for (Entry<String, Object> entry : map.entrySet())
                 put(renameFunction.apply(entry.getKey()), entry.getValue());
         }};
     }
+
 
     private Core() {
     }
