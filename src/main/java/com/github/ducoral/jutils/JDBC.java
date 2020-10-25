@@ -109,6 +109,22 @@ public final class JDBC {
         }
     }
 
+    public static void commit(Connection connection) {
+        try {
+            connection.commit();
+        } catch (Exception e) {
+            throw new Oops(e.getMessage(), e);
+        }
+    }
+
+    public static void rollback(Connection connection) {
+        try {
+            connection.rollback();
+        } catch (Exception e) {
+            throw new Oops(e.getMessage(), e);
+        }
+    }
+
     public static ResultSet select(Connection connection, Object sql, Object... args) {
         try {
             return prepare(connection, sql, args).executeQuery();
