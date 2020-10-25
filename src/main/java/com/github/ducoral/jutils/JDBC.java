@@ -152,19 +152,19 @@ public final class JDBC {
         return execute(connection, sql.append(')'), values);
     }
 
-    public static boolean update(Connection connection, String table, String condition, Map<Object, Object> values) {
-        List<Object> params = new ArrayList<>();
+    public static boolean update(Connection connection, String table, String condition, Map<String, Object> values) {
+        List<String> params = new ArrayList<>();
         condition = extract(condition, params);
         List<Object> args = new ArrayList<>();
         StringBuilder sql = new StringBuilder("update ").append(table).append("set ");
         Object comma = secondTimeReturns(", ");
-        for (Object column : values.entrySet())
+        for (String column : values.keySet())
             if (!params.contains(column)) {
                 sql.append(comma).append(column).append(" = ?");
                 args.add(values.get(column));
             }
         sql.append(' ').append(condition);
-        for (Object param : params)
+        for (String param : params)
             args.add(values.get(param));
         return execute(connection, sql, args.toArray());
     }

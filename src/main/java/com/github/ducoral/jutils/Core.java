@@ -141,7 +141,7 @@ public final class Core {
         return object.append("}").toString();
     }
 
-    public static String extract(String template, List<Object> params) {
+    public static String extract(String template, List<String> params) {
         Matcher matcher = PARAM_PATTERN.matcher(template);
         while (matcher.find()) {
             String param = matcher.group(DOTTED_IDENTIFIER_GROUP);
@@ -161,70 +161,75 @@ public final class Core {
             command.execute();
     }
 
-    public static List<Object> values(List<Object> keys, Map<String, Object> map) {
+    public static List<Object> values(List<String> keys, Map<String, Object> map) {
         return new ArrayList<Object>() {{
-            for (Object key : keys)
+            for (String key : keys)
                 add(map.get(key));
         }};
     }
 
     public interface MapBuilder {
         MapBuilder pair(String key, Object value);
-        MapBuilder ignoreKeyCase();
+        MapBuilder merge(Map<String, Object> map);
+        MapBuilder rename(Function<String, String> renameKeyFunction);
+        MapBuilder ignore();
         Map<String, Object> done();
     }
 
     public static MapBuilder map() {
+        return map(new HashMap<>());
+    }
+
+    public static MapBuilder map(Map<String, Object> source) {
         return new MapBuilder() {
-            final Map<String, Object> map = new HashMap<>();
-            boolean ignoreKeyCase = false;
+            Map<String, Object> map = new HashMap<>(source);
+            boolean ignore = false;
+
+            public MapBuilder merge(Map<String, Object> map) {
+                this.map.putAll(map);
+                return this;
+            }
+
+            public MapBuilder rename(Function<String, String> renameKeyFunction) {
+                map = new HashMap<String, Object>() {{
+                    for (String key : map.keySet())
+                        put(renameKeyFunction.apply(key), map.get(key));
+                }};
+                return this;
+            }
 
             public MapBuilder pair(String key, Object value) {
                 map.put(key, value);
                 return this;
             }
 
-            public MapBuilder ignoreKeyCase() {
-                ignoreKeyCase = true;
+            public MapBuilder ignore() {
+                ignore = true;
                 return this;
             }
 
             public Map<String, Object> done() {
-                return ignoreKeyCase ? Core.ignoreKeyCase(map) : map;
+                return ignore ? ignoreKeyCase(map) : map;
             }
         };
     }
 
-    public static Map<String, Object> ignoreKeyCase(Map<String, Object> map) {
-        return new IgnoreCaseHashMap(map);
-    }
-
-    public static Map<String, Object> map(ResultSet rs) {
+    public static MapBuilder map(ResultSet rs) {
         try {
-            return new HashMap<String, Object>() {{
+            HashMap<String, Object> resultSetMap = new HashMap<String, Object>() {{
                 ResultSetMetaData metaData = rs.getMetaData();
                 for (int index = 1; index <= metaData.getColumnCount(); index++)
-                    put(metaData.getColumnName(index).toLowerCase(), rs.getObject(index));
+                    put(metaData.getColumnName(index), rs.getObject(index));
             }};
+            return map(resultSetMap);
         } catch (Exception e) {
             throw new Oops(e.getMessage(), e);
         }
     }
 
-    public static Map<String, Object> merge(Map<String, Object> map1, Map<String, Object> map2) {
-        Map<String, Object> merged = new HashMap<>();
-        merged.putAll(map1);
-        merged.putAll(map2);
-        return merged;
+    public static Map<String, Object> ignoreKeyCase(Map<String, Object> map) {
+        return new IgnoreCaseHashMap(map);
     }
-
-    public static Map<String, Object> rename(Map<String, Object> map, Function<String, String> renameFunction) {
-        return new HashMap<String, Object>() {{
-            for (Entry<String, Object> entry : map.entrySet())
-                put(renameFunction.apply(entry.getKey()), entry.getValue());
-        }};
-    }
-
 
     private Core() {
     }
