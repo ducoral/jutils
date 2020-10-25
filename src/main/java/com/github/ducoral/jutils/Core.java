@@ -183,7 +183,7 @@ public final class Core {
             return new HashMap<Object, Object>() {{
                 ResultSetMetaData metaData = rs.getMetaData();
                 for (int index = 1; index <= metaData.getColumnCount(); index++)
-                    put(metaData.getColumnName(index).toLowerCase() g , rs.getObject(index));
+                    put(metaData.getColumnName(index).toLowerCase(), rs.getObject(index));
             }};
         } catch (Exception e) {
             throw new Oops(e.getMessage(), e);
