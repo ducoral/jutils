@@ -10,13 +10,11 @@ import static com.github.ducoral.jutils.XML.*;
 public class Test {
 
     public static void main(String[] args) {
-        Pattern patter = Pattern.compile("\\$\\{((\\w+\\.?\\w*))}");
-        Matcher matcher = patter.matcher("um: ${um}, dois: ${dois}, tres: ${tres}");
-        while (matcher.find()) {
-            for (int i = 0; i < matcher.groupCount(); i++)
-                System.out.println(i + ": " + matcher.group(i));
-            System.out.println();
-        }
+        List<String> params = new ArrayList<>();
+
+        String expression = extract("um: ${um}, dois: ${dois}, tres: ${tres}", params, "%%");
+
+        System.out.println("expressão: " + expression + ", parametros: " + params);
     }
 
     private static void testJSONs() {

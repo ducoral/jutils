@@ -18,13 +18,7 @@ public final class Core {
 
     public static final String JSON_DATETIME_FORMAT = "yyyy-MM-ddT" + JSON_TIME_FORMAT;
 
-    public static final Pattern PARAM_PATTERN = Pattern.compile("\\$\\{(\\w+\\.?\\w*)(:([dhmysHMT/: ]+))?}");
-
-    public static final int PARAM_GROUP = 0;
-
-    public static final int PARAM_NAME_GROUP = 1;
-
-    public static final int PARAM_FORMAT_GROUP = 2;
+    public static final Pattern PARAM_PATTERN = Pattern.compile("\\$\\{\\w+\\.?\\w*}");
 
     public enum Align { LEFT, CENTER, RIGHT}
 
@@ -100,15 +94,10 @@ public final class Core {
 
     public static String format(String template, Map<String, Object> scope) {
         List<String> params = new ArrayList<>();
-        List<String> formats = new ArrayList<>();
         List<Object> replacements = new ArrayList<>();
-        template = extract(template, params, formats, "%s");
-        for (int index = 0; index < params.size(); index++) {
-            Object value = scope.get(params.get(index));
-            if (value instanceof Date)
-                value = format((Date) value, formats.get(index));
-            replacements.add(value);
-        }
+        template = extract(template, params, "%s");
+        for (int index = 0; index < params.size(); index++)
+            replacements.add(scope.get(params.get(index)));
         return format(template, replacements.toArray());
     }
 
@@ -169,19 +158,11 @@ public final class Core {
     }
 
     public static String extract(String template, List<String> params, String replacement) {
-        return extract(template, params, null, replacement);
-    }
-
-    public static String extract(String template, List<String> params, List<String> formats, String replacement) {
         Matcher matcher = PARAM_PATTERN.matcher(template);
         while (matcher.find()) {
-            String param = matcher.group(PARAM_NAME_GROUP);
-            params.add(param);
-            template = replace(template, matcher.group(PARAM_GROUP), replacement);
-            if (Objects.nonNull(formats)) {
-                String format = safe(matcher.group(PARAM_FORMAT_GROUP));
-                formats.add(format.isEmpty() ? "" : format.substring(1));
-            }
+            String param = matcher.group(0);
+            params.add(param.substring(2, param.length() - 1));
+            template = replace(template, param, replacement);
         }
         return template;
     }
@@ -192,7 +173,7 @@ public final class Core {
             byte[] buffer = new byte[1024];
             int len;
             while ((len = input.read(buffer)) > -1)
-                baos.write(buffer, 0, len);
+                baos.write(buffer,0, len);
             return baos.toByteArray();
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage(), e);
