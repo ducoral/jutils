@@ -1,28 +1,30 @@
 package com.github.ducoral.jutils;
 
-import java.sql.*;
+import java.io.*;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.Time;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static java.util.regex.Pattern.compile;
-
 public final class Core {
 
     public static final String JSON_TIME_FORMAT = "hh:mm:ss";
 
-    public static final String JSON_DATETIME_FORMAT = "yyyy-MM-dd " + JSON_TIME_FORMAT;
+    public static final String JSON_DATETIME_FORMAT = "yyyy-MM-ddT" + JSON_TIME_FORMAT;
 
-    public static final String PARAM_REGEX_TEMPLATE = "\\$\\{%s}";
+    public static final Pattern PARAM_PATTERN = Pattern.compile("\\$\\{(\\w+\\.?\\w*)(:([dhmysHMT/: ]+))?}");
 
-    public static final String DOTTED_IDENTIFIER_REGEX = "((\\w+\\.)?\\w+)";
+    public static final int PARAM_GROUP = 0;
 
-    public static final int DOTTED_IDENTIFIER_GROUP = 1;
+    public static final int PARAM_NAME_GROUP = 1;
 
-    public static final Pattern PARAM_PATTERN = compile(format(PARAM_REGEX_TEMPLATE, DOTTED_IDENTIFIER_REGEX));
+    public static final int PARAM_FORMAT_GROUP = 2;
 
     public enum Align { LEFT, CENTER, RIGHT}
 
@@ -85,8 +87,33 @@ public final class Core {
         }
     }
 
-    public static String format(String format, Object args) {
-        return java.lang.String.format(format, args);
+    public static String replace(String str, String target, String replacement) {
+        int index = str.indexOf(target);
+        if (index > -1)
+            str = str.substring(0, index) + replacement + str.substring(index + target.length());
+        return str;
+    }
+
+    public static String format(String template, Pair... parameters) {
+        return format(template, map(parameters));
+    }
+
+    public static String format(String template, Map<String, Object> scope) {
+        List<String> params = new ArrayList<>();
+        List<String> formats = new ArrayList<>();
+        List<Object> replacements = new ArrayList<>();
+        template = extract(template, params, formats, "%s");
+        for (int index = 0; index < params.size(); index++) {
+            Object value = scope.get(params.get(index));
+            if (value instanceof Date)
+                value = format((Date) value, formats.get(index));
+            replacements.add(value);
+        }
+        return format(template, replacements.toArray());
+    }
+
+    public static String format(String format, Object... args) {
+        return String.format(format, args);
     }
 
     public static String format(Date date, String format) {
@@ -141,14 +168,53 @@ public final class Core {
         return object.append("}").toString();
     }
 
-    public static String extract(String template, List<String> params) {
+    public static String extract(String template, List<String> params, String replacement) {
+        return extract(template, params, null, replacement);
+    }
+
+    public static String extract(String template, List<String> params, List<String> formats, String replacement) {
         Matcher matcher = PARAM_PATTERN.matcher(template);
         while (matcher.find()) {
-            String param = matcher.group(DOTTED_IDENTIFIER_GROUP);
+            String param = matcher.group(PARAM_NAME_GROUP);
             params.add(param);
-            template = template.replaceFirst(format(PARAM_REGEX_TEMPLATE, param), "?");
+            template = replace(template, matcher.group(PARAM_GROUP), replacement);
+            if (Objects.nonNull(formats)) {
+                String format = safe(matcher.group(PARAM_FORMAT_GROUP));
+                formats.add(format.isEmpty() ? "" : format.substring(1));
+            }
         }
         return template;
+    }
+
+    public static byte[] bytes(InputStream input) {
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024];
+            int len;
+            while ((len = input.read(buffer)) > -1)
+                baos.write(buffer, 0, len);
+            return baos.toByteArray();
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    public static InputStream stream(byte[] bytes) {
+        return new ByteArrayInputStream(bytes);
+    }
+
+    public static PropertyResourceBundle properties(String name) {
+        ClassLoader loader = Core.class.getClassLoader();
+        URL resource = loader.getResource(format("%s_%s.properties", name, Locale.getDefault()));
+        if (resource == null)
+            resource = loader.getResource(format("%s.properties", name));
+        if (resource == null)
+            throw new Oops("Could not load property file");
+        try {
+            return new PropertyResourceBundle(new InputStreamReader(resource.openStream(), StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            throw new Oops(e.getMessage(), e);
+        }
     }
 
     @FunctionalInterface
@@ -165,6 +231,29 @@ public final class Core {
         return new ArrayList<Object>() {{
             for (String key : keys)
                 add(map.get(key));
+        }};
+    }
+
+    public interface Pair {
+        String key();
+        Object value();
+    }
+
+    public static Pair pair(String key, Object value) {
+        return new Pair() {
+            public String key() {
+                return key;
+            }
+            public Object value() {
+                return value;
+            }
+        };
+    }
+
+    public static Map<String, Object> map(Pair... pairs) {
+        return new HashMap<String, Object>() {{
+            for (Pair pair : pairs)
+                put(pair.key(), pair.value());
         }};
     }
 

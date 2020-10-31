@@ -61,12 +61,12 @@ public final class JDBC {
                 st.setBigDecimal(index, (BigDecimal) value);
             else if (value instanceof String)
                 st.setString(index, (String) value);
-            else if (value instanceof java.sql.Date)
-                st.setDate(index, (java.sql.Date) value);
-            else if (value instanceof java.sql.Time)
-                st.setTime(index, (java.sql.Time) value);
-            else if (value instanceof java.sql.Timestamp)
-                st.setTimestamp(index, (java.sql.Timestamp) value);
+            else if (value instanceof Date)
+                st.setDate(index, (Date) value);
+            else if (value instanceof Time)
+                st.setTime(index, (Time) value);
+            else if (value instanceof Timestamp)
+                st.setTimestamp(index, (Timestamp) value);
             else if (value instanceof Boolean)
                 st.setBoolean(index, (Boolean) value);
             else if (value instanceof byte[])
@@ -154,7 +154,7 @@ public final class JDBC {
 
     public static boolean update(Connection connection, String table, String condition, Map<String, Object> values) {
         List<String> params = new ArrayList<>();
-        condition = extract(condition, params);
+        condition = extract(condition, params, "?");
         List<Object> args = new ArrayList<>();
         StringBuilder sql = new StringBuilder("update ").append(table).append("set ");
         Object comma = secondTimeReturns(", ");

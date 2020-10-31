@@ -159,7 +159,7 @@ public final class XML {
             throw new Oops("TAG faltante: %s", Arrays.asList(tags).toArray());
     }
 
-    public static Element accept(XML.Element element, String... tags) {
+    public static Element accept(Element element, String... tags) {
         if (isOneOf(element.name, tags))
             return element;
         else

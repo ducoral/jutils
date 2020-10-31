@@ -1,6 +1,8 @@
 package com.github.ducoral.jutils;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.github.ducoral.jutils.Core.*;
 import static com.github.ducoral.jutils.XML.*;
@@ -8,11 +10,13 @@ import static com.github.ducoral.jutils.XML.*;
 public class Test {
 
     public static void main(String[] args) {
-        Object value = secondTimeReturns("value");
-        System.out.println("1a: " + value);
-        System.out.println("2a: " + value);
-        System.out.println("3a: " + value);
-        System.out.println("4a: " + value);
+        Pattern patter = Pattern.compile("\\$\\{((\\w+\\.?\\w*))}");
+        Matcher matcher = patter.matcher("um: ${um}, dois: ${dois}, tres: ${tres}");
+        while (matcher.find()) {
+            for (int i = 0; i < matcher.groupCount(); i++)
+                System.out.println(i + ": " + matcher.group(i));
+            System.out.println();
+        }
     }
 
     private static void testJSONs() {
