@@ -11,6 +11,8 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public final class Core {
 
@@ -50,18 +52,23 @@ public final class Core {
         };
     }
 
-    public static List<Object> list(Object... values) {
-        return new ArrayList<Object>() {{
-            addAll(Arrays.asList(values));
-        }};
+    public static Stream<Integer> range(Integer start, Integer end) {
+        List<Integer> range = new ArrayList<>();
+        if (start > end)
+            for (int item = start; item >= end; item--)
+                range.add(item);
+        else
+            for (int item = start; item <= end; item++)
+                range.add(item);
+        return range.stream();
     }
 
     public static String str(int length, char fill) {
         return new String(new byte[length]).replace('\0', fill);
     }
 
-    public static String safe(String value) {
-        return value == null ? "" : value;
+    public static String safe(Object value) {
+        return value == null ? "" : value.toString();
     }
 
     public static String fix(String value, int width) {
@@ -88,17 +95,19 @@ public final class Core {
         return str;
     }
 
+    public static void replace(StringBuilder str, String target, String replacement) {
+        int index = str.indexOf(target);
+        str.replace(index, index + target.length(), replacement);
+    }
+
     public static String format(String template, Pair... parameters) {
         return format(template, map(parameters));
     }
 
     public static String format(String template, Map<String, Object> scope) {
-        List<String> params = new ArrayList<>();
-        List<Object> replacements = new ArrayList<>();
-        template = extract(template, params, "%s");
-        for (int index = 0; index < params.size(); index++)
-            replacements.add(scope.get(params.get(index)));
-        return format(template, replacements.toArray());
+        StringBuilder result = new StringBuilder(template);
+        parameters(template).forEach(param -> replace(result, param, safe(scope.get(param))));
+        return result.toString();
     }
 
     public static String format(String format, Object... args) {
@@ -157,14 +166,19 @@ public final class Core {
         return object.append("}").toString();
     }
 
-    public static String extract(String template, List<String> params, String replacement) {
-        Matcher matcher = PARAM_PATTERN.matcher(template);
-        while (matcher.find()) {
-            String param = matcher.group(0);
-            params.add(param.substring(2, param.length() - 1));
-            template = replace(template, param, replacement);
-        }
-        return template;
+    public static List<String> matches(Pattern pattern, String input) {
+        List<String> matches = new ArrayList<>();
+        Matcher matcher = pattern.matcher(input);
+        while (matcher.find())
+            matches.add(matcher.group(0));
+        return matches;
+    }
+
+    public static List<String> parameters(String template) {
+        return matches(PARAM_PATTERN, template)
+                .stream()
+                .map(param -> param.substring(2, param.length() - 1))
+                .collect(Collectors.toList());
     }
 
     public static byte[] bytes(InputStream input) {
@@ -190,11 +204,11 @@ public final class Core {
         if (resource == null)
             resource = loader.getResource(format("%s.properties", name));
         if (resource == null)
-            throw new Oops("Could not load property file");
+            throw new Oops("Could not load property file " + name);
         try {
             return new PropertyResourceBundle(new InputStreamReader(resource.openStream(), StandardCharsets.UTF_8));
         } catch (IOException e) {
-            throw new Oops(e.getMessage(), e);
+            throw Oops.of(e);
         }
     }
 
@@ -293,7 +307,7 @@ public final class Core {
             }};
             return map(resultSetMap);
         } catch (Exception e) {
-            throw new Oops(e.getMessage(), e);
+            throw Oops.of(e);
         }
     }
 

@@ -1,8 +1,6 @@
 package com.github.ducoral.jutils;
 
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.HashMap;
 
 import static com.github.ducoral.jutils.Core.*;
 import static com.github.ducoral.jutils.XML.*;
@@ -10,23 +8,7 @@ import static com.github.ducoral.jutils.XML.*;
 public class Test {
 
     public static void main(String[] args) {
-        List<String> params = new ArrayList<>();
-
-        String expression = extract("um: ${um}, dois: ${dois}, tres: ${tres}", params, "%%");
-
-        System.out.println("expressão: " + expression + ", parametros: " + params);
-    }
-
-    private static void testJSONs() {
-        Object map = new HashMap<String, Object>() {{
-            put("um", 12);
-            put("dois", true);
-            put("três", list("Teste", 10, false, null));
-            put("quatro", "texto");
-        }};
-
-        System.out.println(json(map));
-
+        range(30, 25).forEach(System.out::println);
     }
 
     private static void testXMLs() {

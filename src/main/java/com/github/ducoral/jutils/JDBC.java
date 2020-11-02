@@ -15,7 +15,7 @@ public final class JDBC {
         try {
             return DriverManager.getConnection(url, user, password);
         } catch (Exception e) {
-            throw new Oops(e.getMessage(), e);
+            throw Oops.of(e);
         }
     }
 
@@ -23,7 +23,7 @@ public final class JDBC {
         try {
             return connection.createStatement();
         } catch (Exception e) {
-            throw new Oops(e.getMessage(), e);
+            throw Oops.of(e);
         }
     }
 
@@ -31,64 +31,16 @@ public final class JDBC {
         try {
             return parameter(connection.prepareStatement(sql.toString()), args);
         } catch (Exception e) {
-            throw new Oops(e.getMessage(), e);
+            throw Oops.of(e);
         }
     }
 
     public static PreparedStatement parameter(PreparedStatement st, Object... args) {
-        for (int index = 0; index < args.length; index++)
-            parameter(st, index + 1, args[index]);
-        return st;
-    }
-
-    public static PreparedStatement parameter(PreparedStatement st, int index, Object value) {
         try {
-            if (value == null)
-                st.setNull(index, Types.NULL);
-            else if (value instanceof Byte)
-                st.setByte(index, (Byte) value);
-            else if (value instanceof Short)
-                st.setShort(index, (Short) value);
-            else if (value instanceof Integer)
-                st.setInt(index, (Integer) value);
-            else if (value instanceof Long)
-                st.setLong(index, (Long) value);
-            else if (value instanceof Float)
-                st.setFloat(index, (Float) value);
-            else if (value instanceof Double)
-                st.setDouble(index, (Double) value);
-            else if (value instanceof BigDecimal)
-                st.setBigDecimal(index, (BigDecimal) value);
-            else if (value instanceof String)
-                st.setString(index, (String) value);
-            else if (value instanceof Date)
-                st.setDate(index, (Date) value);
-            else if (value instanceof Time)
-                st.setTime(index, (Time) value);
-            else if (value instanceof Timestamp)
-                st.setTimestamp(index, (Timestamp) value);
-            else if (value instanceof Boolean)
-                st.setBoolean(index, (Boolean) value);
-            else if (value instanceof byte[])
-                st.setBytes(index, (byte[]) value);
-            else if (value instanceof Ref)
-                st.setRef(index, ((Ref) value));
-            else if (value instanceof NClob)
-                st.setNClob(index, (NClob) value);
-            else if (value instanceof Clob)
-                st.setClob(index, (Clob) value);
-            else if (value instanceof Blob)
-                st.setBlob(index, (Blob) value);
-            else if (value instanceof Array)
-                st.setArray(index, (Array) value);
-            else if (value instanceof URL)
-                st.setURL(index, (URL) value);
-            else if (value instanceof SQLXML)
-                st.setSQLXML(index, (SQLXML) value);
-            else
-                st.setObject(index, value);
+            for (int index = 0; index < args.length; index++)
+                st.setObject(index + 1, args[index]);
         } catch (Exception e) {
-            throw new Oops(e.getMessage(), e);
+            throw Oops.of(e);
         }
         return st;
     }
@@ -97,7 +49,7 @@ public final class JDBC {
         try {
             return statement(connection).execute(sql.toString());
         } catch (Exception e) {
-            throw new Oops(e.getMessage(), e);
+            throw Oops.of(e);
         }
     }
 
@@ -105,7 +57,7 @@ public final class JDBC {
         try {
             return prepare(connection, sql, args).execute();
         } catch (Exception e) {
-            throw new Oops(e.getMessage(), e);
+            throw Oops.of(e);
         }
     }
 
@@ -113,7 +65,7 @@ public final class JDBC {
         try {
             connection.commit();
         } catch (Exception e) {
-            throw new Oops(e.getMessage(), e);
+            throw Oops.of(e);
         }
     }
 
@@ -121,7 +73,7 @@ public final class JDBC {
         try {
             connection.rollback();
         } catch (Exception e) {
-            throw new Oops(e.getMessage(), e);
+            throw Oops.of(e);
         }
     }
 
@@ -129,7 +81,7 @@ public final class JDBC {
         try {
             return prepare(connection, sql, args).executeQuery();
         } catch (Exception e) {
-            throw new Oops(e.getMessage(), e);
+            throw Oops.of(e);
         }
     }
 
@@ -152,28 +104,11 @@ public final class JDBC {
         return execute(connection, sql.append(')'), values);
     }
 
-    public static boolean update(Connection connection, String table, String condition, Map<String, Object> values) {
-        List<String> params = new ArrayList<>();
-        condition = extract(condition, params, "?");
-        List<Object> args = new ArrayList<>();
-        StringBuilder sql = new StringBuilder("update ").append(table).append("set ");
-        Object comma = secondTimeReturns(", ");
-        for (String column : values.keySet())
-            if (!params.contains(column)) {
-                sql.append(comma).append(column).append(" = ?");
-                args.add(values.get(column));
-            }
-        sql.append(' ').append(condition);
-        for (String param : params)
-            args.add(values.get(param));
-        return execute(connection, sql, args.toArray());
-    }
-
     public static boolean next(ResultSet rs) {
         try {
             return rs.next();
         } catch (Exception e) {
-            throw new Oops(e.getMessage(), e);
+            throw Oops.of(e);
         }
     }
 
@@ -181,7 +116,7 @@ public final class JDBC {
         try {
             return rs.getBytes(column);
         } catch (Exception e) {
-            throw new Oops(e.getMessage(), e);
+            throw Oops.of(e);
         }
     }
 
@@ -189,7 +124,7 @@ public final class JDBC {
         try {
             return rs.getString(column);
         } catch (Exception e) {
-            throw new Oops(e.getMessage(), e);
+            throw Oops.of(e);
         }
     }
 
@@ -197,7 +132,7 @@ public final class JDBC {
         try {
             return rs.getShort(column);
         } catch (Exception e) {
-            throw new Oops(e.getMessage(), e);
+            throw Oops.of(e);
         }
     }
 
@@ -205,7 +140,7 @@ public final class JDBC {
         try {
             return rs.getInt(column);
         } catch (Exception e) {
-            throw new Oops(e.getMessage(), e);
+            throw Oops.of(e);
         }
     }
 
@@ -213,7 +148,7 @@ public final class JDBC {
         try {
             return rs.getLong(column);
         } catch (Exception e) {
-            throw new Oops(e.getMessage(), e);
+            throw Oops.of(e);
         }
     }
 
@@ -221,7 +156,7 @@ public final class JDBC {
         try {
             return rs.getFloat(column);
         } catch (Exception e) {
-            throw new Oops(e.getMessage(), e);
+            throw Oops.of(e);
         }
     }
 
@@ -229,7 +164,7 @@ public final class JDBC {
         try {
             return rs.getDouble(column);
         } catch (Exception e) {
-            throw new Oops(e.getMessage(), e);
+            throw Oops.of(e);
         }
     }
 
@@ -237,7 +172,7 @@ public final class JDBC {
         try {
             return rs.getBigDecimal(column);
         } catch (Exception e) {
-            throw new Oops(e.getMessage(), e);
+            throw Oops.of(e);
         }
     }
 
@@ -245,7 +180,7 @@ public final class JDBC {
         try {
             return rs.getDate(column);
         } catch (Exception e) {
-            throw new Oops(e.getMessage(), e);
+            throw Oops.of(e);
         }
     }
 
@@ -253,7 +188,7 @@ public final class JDBC {
         try {
             return rs.getTime(column);
         } catch (Exception e) {
-            throw new Oops(e.getMessage(), e);
+            throw Oops.of(e);
         }
     }
 
@@ -261,7 +196,7 @@ public final class JDBC {
         try {
             return rs.getBoolean(column);
         } catch (Exception e) {
-            throw new Oops(e.getMessage(), e);
+            throw Oops.of(e);
         }
     }
 
@@ -269,7 +204,7 @@ public final class JDBC {
         try {
             return rs.getObject(column);
         } catch (Exception e) {
-            throw new Oops(e.getMessage(), e);
+            throw Oops.of(e);
         }
     }
 
@@ -277,7 +212,7 @@ public final class JDBC {
         try {
             return rs.getBlob(column);
         } catch (Exception e) {
-            throw new Oops(e.getMessage(), e);
+            throw Oops.of(e);
         }
     }
 
@@ -285,7 +220,7 @@ public final class JDBC {
         try {
             return rs.getClob(column);
         } catch (Exception e) {
-            throw new Oops(e.getMessage(), e);
+            throw Oops.of(e);
         }
     }
 
