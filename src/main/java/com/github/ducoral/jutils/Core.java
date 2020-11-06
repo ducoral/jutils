@@ -1,6 +1,7 @@
 package com.github.ducoral.jutils;
 
 import java.io.*;
+import java.lang.reflect.Field;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.sql.ResultSet;
@@ -18,7 +19,7 @@ public final class Core {
 
     public static final String JSON_TIME_FORMAT = "hh:mm:ss";
 
-    public static final String JSON_DATETIME_FORMAT = "yyyy-MM-ddT" + JSON_TIME_FORMAT;
+    public static final String JSON_DATETIME_FORMAT = "yyyy-MM-dd'T'" + JSON_TIME_FORMAT;
 
     public static final Pattern PARAM_PATTERN = Pattern.compile("\\$\\{\\w+\\.?\\w*}");
 
@@ -133,6 +134,14 @@ public final class Core {
         return false;
     }
 
+    public static boolean isPrimitiveType(Object value) {
+        return Objects.isNull(value)
+            || value instanceof Number
+            || value instanceof CharSequence
+            || value instanceof Date
+            || value instanceof Boolean;
+    }
+
     public static String json(Object value) {
         if (value instanceof List)
             return json((List<?>) value);
@@ -142,9 +151,18 @@ public final class Core {
             return json(format((Time) value, JSON_TIME_FORMAT));
         else if (value instanceof Date)
             return json(format((Date) value, JSON_DATETIME_FORMAT));
-        else {
+        else if (isPrimitiveType(value)) {
             String str = String.valueOf(value);
             return value instanceof String ? '"' + str + '"' : str;
+        } else try{
+            Class<?> type = value.getClass();
+            StringBuilder builder = new StringBuilder("{");
+            Object comma = secondTimeReturns(",");
+            for (Field field : type.getDeclaredFields())
+                builder.append(comma).append('"').append(field.getName()).append("\":").append(json(field.get(value)));
+            return builder.append('}').toString();
+        } catch (Exception e) {
+            throw Oops.of(e);
         }
     };
 
@@ -313,6 +331,41 @@ public final class Core {
 
     public static Map<String, Object> ignoreKeyCase(Map<String, Object> map) {
         return new IgnoreCaseHashMap(map);
+    }
+
+    public interface Mock<T> {
+        Mock<T> returns(Function<T, ?> function);
+        T done();
+    }
+
+    public static <T> Mock<T> mock(Class<T> type) {
+        return new Mocked<>(type);
+    }
+
+    public static void set(Field field, Object object, Object value) {
+        try {
+            boolean accessible = field.isAccessible();
+            field.setAccessible(true);
+            field.set(object, value);
+            field.setAccessible(accessible);
+        } catch (Exception e) {
+            throw Oops.of(e);
+        }
+    }
+
+    public static <T> T build(Class<T> type, Object... args) {
+        Iterator<Object> params = Arrays.asList(args).iterator();
+        try {
+            T object = type.newInstance();
+            for (Field field : type.getDeclaredFields())
+                if (params.hasNext())
+                    set(field, object, params.next());
+                else
+                    break;
+            return object;
+        } catch (Exception e) {
+            throw Oops.of(e);
+        }
     }
 
     private Core() {
