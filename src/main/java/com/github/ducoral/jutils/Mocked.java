@@ -50,7 +50,7 @@ class Mocked<T> implements Core.Mock<T>, InvocationHandler {
     @SuppressWarnings("unchecked")
     Mocked(Class<T> type) {
         loader = Mocked.class.getClassLoader();
-        interfaces = new Class[]{type};
+        interfaces = new Class[]{ type };
         mock = (T) newProxyInstance(loader, interfaces,this);
     }
 }

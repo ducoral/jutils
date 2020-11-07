@@ -1,13 +1,10 @@
 package com.github.ducoral.jutils;
 
 import java.math.BigDecimal;
-import java.net.URL;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
-import static com.github.ducoral.jutils.Core.*;
+import static com.github.ducoral.jutils.Core.secondTimeReturns;
+import static com.github.ducoral.jutils.Core.times;
 
 public final class JDBC {
 

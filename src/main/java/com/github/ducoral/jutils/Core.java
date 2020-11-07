@@ -283,37 +283,7 @@ public final class Core {
     }
 
     public static MapBuilder map(Map<String, Object> source) {
-        return new MapBuilder() {
-            Map<String, Object> map = new HashMap<>(source);
-            boolean ignore = false;
-
-            public MapBuilder merge(Map<String, Object> map) {
-                this.map.putAll(map);
-                return this;
-            }
-
-            public MapBuilder rename(Function<String, String> renameKeyFunction) {
-                map = new HashMap<String, Object>() {{
-                    for (String key : map.keySet())
-                        put(renameKeyFunction.apply(key), map.get(key));
-                }};
-                return this;
-            }
-
-            public MapBuilder pair(String key, Object value) {
-                map.put(key, value);
-                return this;
-            }
-
-            public MapBuilder ignore() {
-                ignore = true;
-                return this;
-            }
-
-            public Map<String, Object> done() {
-                return ignore ? ignoreKeyCase(map) : map;
-            }
-        };
+        return new MapBuilded(source);
     }
 
     public static MapBuilder map(ResultSet rs) {
