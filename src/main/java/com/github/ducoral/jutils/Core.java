@@ -1,7 +1,11 @@
 package com.github.ducoral.jutils;
 
 import java.io.*;
-import java.lang.reflect.Field;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.lang.reflect.*;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.sql.ResultSet;
@@ -23,11 +27,55 @@ public final class Core {
 
     public static final Pattern PARAM_PATTERN = Pattern.compile("\\$\\{\\w+\\.?\\w*}");
 
-    public enum Align { LEFT, CENTER, RIGHT}
+    public enum Align {LEFT, CENTER, RIGHT}
+
+    @Target(value = ElementType.TYPE)
+    @Retention(value = RetentionPolicy.RUNTIME)
+    public @interface Bean {
+        Class<?> type();
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> T copy(T object) {
+        return (T) invoke(object, method(object.getClass(), "clone"));
+    }
+
+    public static Object create(Class<?> type) {
+        return create(new Stack<>(), type);
+    }
+
+    private static Object create(Stack<String> scope, Class<?> type) {
+        if (scope.contains(type.getName()))
+            throw new Oops("Referência cíclica: %s", scope.toString());
+        if (type.isInterface()) {
+            Bean bean = Optional
+                    .of(type.getAnnotation(Bean.class))
+                    .orElseThrow(() -> new Oops("Interface deve estar anotada com %s", Bean.class.getName()));
+            return create(scope, bean.type());
+        }
+        Constructor<?>[] constructors = type.getDeclaredConstructors();
+        if (constructors.length == 0)
+            throw new Oops("Tipo %s não contém construtora!", type.getName());
+        else if (constructors.length > 1)
+            throw new Oops("Tipo %s contém mais de uma construtora: %s", type.getName(), Arrays.toString(constructors));
+        try {
+            Parameter[] parameters = constructors[0].getParameters();
+            Object[] args = new Object[parameters.length];
+            for (int index = 0; index < args.length; index++)
+                args[index] = create(push(copy(scope), type.getName()), parameters[index].getType());
+            return constructors[0].newInstance(args);
+        } catch (Oops e) {
+            throw e;
+        } catch (Exception e) {
+            throw Oops.of(e);
+        }
+    }
 
     public static Object secondTimeReturns(String value) {
         return new Object() {
             int time = 0;
+
+            @Override
             public String toString() {
                 return time++ == 0 ? "" : value;
             }
@@ -42,11 +90,13 @@ public final class Core {
         return new Appendable() {
             final StringBuilder builder = new StringBuilder();
             final Object delimiter = secondTimeReturns(separator);
+
             public Appendable append(Object... values) {
                 for (Object value : values)
                     builder.append(delimiter).append(value);
                 return this;
             }
+
             public String toString() {
                 return builder.toString();
             }
@@ -81,8 +131,10 @@ public final class Core {
         if (diff < 1)
             return value;
         switch (align) {
-            case LEFT: return value + str(diff, fill);
-            case RIGHT: return str(diff, fill) + value;
+            case LEFT:
+                return value + str(diff, fill);
+            case RIGHT:
+                return str(diff, fill) + value;
             default:
                 int half = diff / 2;
                 return str(half, fill) + value + str(diff - half, fill);
@@ -136,17 +188,17 @@ public final class Core {
 
     public static boolean isPrimitiveType(Object value) {
         return Objects.isNull(value)
-            || value instanceof Number
-            || value instanceof CharSequence
-            || value instanceof Date
-            || value instanceof Boolean;
+                || value instanceof Number
+                || value instanceof CharSequence
+                || value instanceof Date
+                || value instanceof Boolean;
     }
 
     public static String json(Object value) {
         if (value instanceof List)
             return json((List<?>) value);
         else if (value instanceof Map)
-            return json((Map<?,?>) value);
+            return json((Map<?, ?>) value);
         else if (value instanceof Time)
             return json(format((Time) value, JSON_TIME_FORMAT));
         else if (value instanceof Date)
@@ -154,7 +206,7 @@ public final class Core {
         else if (isPrimitiveType(value)) {
             String str = String.valueOf(value);
             return value instanceof String ? '"' + str + '"' : str;
-        } else try{
+        } else try {
             Class<?> type = value.getClass();
             StringBuilder builder = new StringBuilder("{");
             Object comma = secondTimeReturns(",");
@@ -164,7 +216,7 @@ public final class Core {
         } catch (Exception e) {
             throw Oops.of(e);
         }
-    };
+    }
 
     private static String json(List<?> list) {
         StringBuilder array = new StringBuilder("[");
@@ -205,7 +257,7 @@ public final class Core {
             byte[] buffer = new byte[1024];
             int len;
             while ((len = input.read(buffer)) > -1)
-                baos.write(buffer,0, len);
+                baos.write(buffer, 0, len);
             return baos.toByteArray();
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage(), e);
@@ -249,6 +301,7 @@ public final class Core {
 
     public interface Pair {
         String key();
+
         Object value();
     }
 
@@ -257,6 +310,7 @@ public final class Core {
             public String key() {
                 return key;
             }
+
             public Object value() {
                 return value;
             }
@@ -272,9 +326,13 @@ public final class Core {
 
     public interface MapBuilder {
         MapBuilder pair(String key, Object value);
+
         MapBuilder merge(Map<String, Object> map);
+
         MapBuilder rename(Function<String, String> renameKeyFunction);
+
         MapBuilder ignore();
+
         Map<String, Object> done();
     }
 
@@ -299,6 +357,22 @@ public final class Core {
         }
     }
 
+    public static Method method(Class<?> type, String name, Class<?>... parameterTypes) {
+        for (Method m : type.getMethods())
+            if (m.getName().equals(name) && Arrays.equals(m.getParameterTypes(), parameterTypes))
+                return m;
+        return null;
+    }
+
+    public static Object invoke(Object object, Method method, Object... parameters) {
+        try {
+            method.setAccessible(true);
+            return method.invoke(object, parameters);
+        } catch (Exception e) {
+            throw Oops.of(e);
+        }
+    }
+
     public static Map<String, Object> ignoreKeyCase(Map<String, Object> map) {
         return new IgnoreCaseHashMap(map);
     }
@@ -312,12 +386,15 @@ public final class Core {
         return new Mocked<>(type);
     }
 
+    public static <T> Stack<T> push(Stack<T> stack, T value) {
+        stack.push(value);
+        return stack;
+    }
+
     public static void set(Field field, Object object, Object value) {
         try {
-            boolean accessible = field.isAccessible();
             field.setAccessible(true);
             field.set(object, value);
-            field.setAccessible(accessible);
         } catch (Exception e) {
             throw Oops.of(e);
         }
