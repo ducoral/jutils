@@ -27,7 +27,9 @@ public final class Core {
 
     public static final Pattern PARAM_PATTERN = Pattern.compile("\\$\\{\\w+\\.?\\w*}");
 
-    public enum Align {LEFT, CENTER, RIGHT}
+    public enum Align { LEFT, CENTER, RIGHT }
+
+    public enum Type { JSON }
 
     @Target(value = ElementType.TYPE)
     @Retention(value = RetentionPolicy.RUNTIME)
@@ -74,8 +76,6 @@ public final class Core {
     public static Object secondTimeReturns(String value) {
         return new Object() {
             int time = 0;
-
-            @Override
             public String toString() {
                 return time++ == 0 ? "" : value;
             }
@@ -236,6 +236,10 @@ public final class Core {
         return object.append("}").toString();
     }
 
+    public static Object parseJson(String document) {
+        return new JsonParser(new Scanner(document)).parse();
+    }
+
     public static List<String> matches(Pattern pattern, String input) {
         List<String> matches = new ArrayList<>();
         Matcher matcher = pattern.matcher(input);
@@ -301,7 +305,6 @@ public final class Core {
 
     public interface Pair {
         String key();
-
         Object value();
     }
 
@@ -326,13 +329,9 @@ public final class Core {
 
     public interface MapBuilder {
         MapBuilder pair(String key, Object value);
-
         MapBuilder merge(Map<String, Object> map);
-
         MapBuilder rename(Function<String, String> renameKeyFunction);
-
         MapBuilder ignore();
-
         Map<String, Object> done();
     }
 
@@ -341,7 +340,7 @@ public final class Core {
     }
 
     public static MapBuilder map(Map<String, Object> source) {
-        return new MapBuilded(source);
+        return new DefaultMapBuilder(source);
     }
 
     public static MapBuilder map(ResultSet rs) {
@@ -373,17 +372,13 @@ public final class Core {
         }
     }
 
-    public static Map<String, Object> ignoreKeyCase(Map<String, Object> map) {
-        return new IgnoreCaseHashMap(map);
-    }
-
-    public interface Mock<T> {
-        Mock<T> returns(Function<T, ?> function);
+    public interface MockBuilder<T> {
+        MockBuilder<T> returns(Function<T, ?> function);
         T done();
     }
 
-    public static <T> Mock<T> mock(Class<T> type) {
-        return new Mocked<>(type);
+    public static <T> MockBuilder<T> mock(Class<T> type) {
+        return new DefaultMockBuilder<>(type);
     }
 
     public static <T> Stack<T> push(Stack<T> stack, T value) {
