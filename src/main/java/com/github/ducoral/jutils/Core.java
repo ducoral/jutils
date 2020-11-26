@@ -19,17 +19,18 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.github.ducoral.jutils.Constants.Objects.*;
+import static com.github.ducoral.jutils.Constants.Properties.*;
+
 public final class Core {
-
-    public static final String JSON_TIME_FORMAT = "hh:mm:ss";
-
-    public static final String JSON_DATETIME_FORMAT = "yyyy-MM-dd'T'" + JSON_TIME_FORMAT;
-
-    public static final Pattern PARAM_PATTERN = Pattern.compile("\\$\\{\\w+\\.?\\w*}");
 
     public enum Align { LEFT, CENTER, RIGHT }
 
-    public enum Type { JSON }
+    static PropertyResourceBundle properties = properties("jutils");
+
+    static String property(String key, Object... args) {
+        return format(properties.getString(key), args);
+    }
 
     @Target(value = ElementType.TYPE)
     @Retention(value = RetentionPolicy.RUNTIME)
@@ -48,18 +49,18 @@ public final class Core {
 
     private static Object create(Stack<String> scope, Class<?> type) {
         if (scope.contains(type.getName()))
-            throw new Oops("Referência cíclica: %s", scope.toString());
+            throw new Oops(property(CYCLIC_REFERENCE, scope.toString()));
         if (type.isInterface()) {
             Bean bean = Optional
                     .of(type.getAnnotation(Bean.class))
-                    .orElseThrow(() -> new Oops("Interface deve estar anotada com %s", Bean.class.getName()));
+                    .orElseThrow(() -> new Oops(property(INTERFACE_MUST_BE_ANNOTATED_WITH, Bean.class.getName())));
             return create(scope, bean.type());
         }
         Constructor<?>[] constructors = type.getDeclaredConstructors();
         if (constructors.length == 0)
-            throw new Oops("Tipo %s não contém construtora!", type.getName());
+            throw new Oops(property(TYPE_DOES_NOT_CONTAIN_CONSTRUCTOR, type.getName()));
         else if (constructors.length > 1)
-            throw new Oops("Tipo %s contém mais de uma construtora: %s", type.getName(), Arrays.toString(constructors));
+            throw new Oops(property(TYPE_CONTAINS_MORE_THAN_ONE_CONSTRUCTOR, type.getName(), Arrays.toString(constructors)));
         try {
             Parameter[] parameters = constructors[0].getParameters();
             Object[] args = new Object[parameters.length];
@@ -122,22 +123,22 @@ public final class Core {
         return value == null ? "" : value.toString();
     }
 
-    public static String fix(String value, int width) {
-        return fix(value, width, Align.LEFT, ' ');
+    public static String fill(String value, int width) {
+        return fill(value, width, Align.LEFT, ' ');
     }
 
-    public static String fix(String value, int width, Align align, char fill) {
+    public static String fill(String value, int width, Align align, char withChar) {
         int diff = width - value.length();
         if (diff < 1)
             return value;
         switch (align) {
             case LEFT:
-                return value + str(diff, fill);
+                return value + str(diff, withChar);
             case RIGHT:
-                return str(diff, fill) + value;
+                return str(diff, withChar) + value;
             default:
                 int half = diff / 2;
-                return str(half, fill) + value + str(diff - half, fill);
+                return str(half, withChar) + value + str(diff - half, withChar);
         }
     }
 
@@ -200,9 +201,9 @@ public final class Core {
         else if (value instanceof Map)
             return json((Map<?, ?>) value);
         else if (value instanceof Time)
-            return json(format((Time) value, JSON_TIME_FORMAT));
+            return json(format((Time) value, property(Constants.Properties.JSON_TIME_FORMAT)));
         else if (value instanceof Date)
-            return json(format((Date) value, JSON_DATETIME_FORMAT));
+            return json(format((Date) value, property(Constants.Properties.JSON_DATETIME_FORMAT)));
         else if (isPrimitiveType(value)) {
             String str = String.valueOf(value);
             return value instanceof String ? '"' + str + '"' : str;
@@ -249,7 +250,7 @@ public final class Core {
     }
 
     public static List<String> parameters(String template) {
-        return matches(PARAM_PATTERN, template)
+        return matches(Constants.Objects.PARAM_PATTERN, template)
                 .stream()
                 .map(param -> param.substring(2, param.length() - 1))
                 .collect(Collectors.toList());
@@ -274,7 +275,8 @@ public final class Core {
 
     public static PropertyResourceBundle properties(String name) {
         ClassLoader loader = Core.class.getClassLoader();
-        URL resource = loader.getResource(format("%s_%s.properties", name, Locale.getDefault()));
+        Locale locale = Locale.getDefault();
+        URL resource = loader.getResource(format("%s_%s%s.properties", name, locale.getLanguage(), locale.getCountry()));
         if (resource == null)
             resource = loader.getResource(format("%s.properties", name));
         if (resource == null)

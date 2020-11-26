@@ -8,6 +8,10 @@ public class Oops extends RuntimeException {
         return new Oops(e.getMessage(), e);
     }
 
+    public Oops(String message) {
+        super(message);
+    }
+
     public Oops(String message, Throwable cause) {
         super(message, cause);
     }
