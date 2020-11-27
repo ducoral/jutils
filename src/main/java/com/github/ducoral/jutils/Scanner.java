@@ -3,6 +3,8 @@ package com.github.ducoral.jutils;
 import java.util.function.Predicate;
 
 import static java.lang.Character.*;
+import static com.github.ducoral.jutils.Core.*;
+import static com.github.ducoral.jutils.Constants.Properties.*;
 
 public class Scanner {
 
@@ -61,20 +63,20 @@ public class Scanner {
             else if (previous() == ')')
                 token = Token.CLOSE_PARENTHESES;
             else if (previous() == '=' && current() != '=')
-                error("Operador '==' está incorreto!");
+                error(INCORRECT_OPERATOR, "=", "==");
             else if (previous() == '!' && current() != '=')
-                error("Operador '!=' está incorreto!");
+                error(INCORRECT_OPERATOR, "!", "!=");
             else if (previous() == '&' && current() != '&')
-                error("Operador '&&' está incorreto!");
+                error(INCORRECT_OPERATOR, "&", "&&");
             else if (previous() == '|' && current() != '|')
-                error("Operador '||' está incorreto!");
+                error(INCORRECT_OPERATOR, "|", "||");
             else {
                 if (isCurrentOneOf("=&|"))
                     accept();
                 token = Token.OPERATOR;
             }
         } else
-            error("O caractere '%s' inválido!", current());
+            error(INVALID_CHARACTER, current());
     }
 
     private void parseMinusOperatorOrNumber() {
@@ -156,8 +158,8 @@ public class Scanner {
         return lexeme.isEmpty() ? 0 : lexeme.charAt(lexeme.length() - 1);
     }
 
-    private void error(String message, Object... args) {
+    private void error(String key, Object... args) {
         token = Token.ERROR;
-        error = String.format(message, args);
+        error = property(key, args);
     }
 }

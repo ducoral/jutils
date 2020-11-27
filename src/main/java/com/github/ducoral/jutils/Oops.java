@@ -8,6 +8,10 @@ public class Oops extends RuntimeException {
         return new Oops(e.getMessage(), e);
     }
 
+    public static Oops of(String key, Object... args) {
+        return new Oops(property(key, args));
+    }
+
     public Oops(String message) {
         super(message);
     }

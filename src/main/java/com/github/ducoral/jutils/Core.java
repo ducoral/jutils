@@ -19,7 +19,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.github.ducoral.jutils.Constants.Objects.*;
 import static com.github.ducoral.jutils.Constants.Properties.*;
 
 public final class Core {
@@ -250,7 +249,7 @@ public final class Core {
     }
 
     public static List<String> parameters(String template) {
-        return matches(Constants.Objects.PARAM_PATTERN, template)
+        return matches(Constants.Patterns.PARAM, template)
                 .stream()
                 .map(param -> param.substring(2, param.length() - 1))
                 .collect(Collectors.toList());
