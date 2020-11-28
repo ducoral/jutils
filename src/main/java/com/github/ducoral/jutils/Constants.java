@@ -20,5 +20,9 @@ class Constants {
         public static final String TYPE_CONTAINS_MORE_THAN_ONE_CONSTRUCTOR = "type.contains.more.than.one.constructor";
         public static final String INCORRECT_OPERATOR = "incorrect.operator";
         public static final String INVALID_CHARACTER="invalid.character";
+        public static final String INVALID_DECIMAL="invalid.decimal";
+        public static final String INVALID_TOKEN="invalid.token";
+        public static final String INVALID_EXPECTED_TOKEN="invalid.expected.token";
+        public static final String STRING_NOT_CLOSED="string.not.closed";
     }
 }

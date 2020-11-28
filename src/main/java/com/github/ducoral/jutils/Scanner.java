@@ -96,7 +96,7 @@ public class Scanner {
                         acceptWhile(Character::isDigit);
                         token = Token.DECIMAL;
                     } else
-                        error("O valor '%s' é um número decimal inválido!", lexeme);
+                        error(INVALID_DECIMAL, lexeme);
                 } else
                     token = Token.DECIMAL;
             } else
@@ -126,7 +126,7 @@ public class Scanner {
             next();
             token = Token.STRING;
         } else
-            error("String '%s' não fechada corretamente", lexeme);
+            error(STRING_NOT_CLOSED, lexeme);
     }
 
     private void next() {

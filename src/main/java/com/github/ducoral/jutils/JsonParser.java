@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
 
+import static com.github.ducoral.jutils.Constants.Properties.*;
+
 /* ================================================
            json ::= empty
                   | value
@@ -60,7 +62,7 @@ class JsonParser {
             case BOOLEAN: return Boolean.valueOf(accept(Token.BOOLEAN));
             case NULL: accept(Token.NULL); return null;
         }
-        throw new Oops("Token inválido: %s", scanner.token);
+        throw Oops.of(INVALID_TOKEN, scanner.token);
     }
 
     private Object parseObject() {
@@ -103,7 +105,7 @@ class JsonParser {
 
     private String accept(Token token) {
         if (scanner.token != token)
-            throw new Oops("Token inválido: %s. Era esperado %s.", scanner.token, token);
+            throw Oops.of(INVALID_EXPECTED_TOKEN, scanner.token, token);
         String lexeme = scanner.lexeme;
         scanner.scan();
         return lexeme;

@@ -141,15 +141,29 @@ public final class XML {
                 value = (String) item;
         Element element = new Element(name, value);
         for (Object item : items)
-            if (item instanceof Attr)
-                ((Attr) item).set(element.attributes);
+            if (item instanceof Attribute)
+                ((Attribute) item).set(element.attributes);
             else if (item instanceof Element)
                 element.children.add((Element) item);
         return element;
     }
 
-    public static Object attribute(String name, String value) {
-        return new Attr(name, value);
+    @FunctionalInterface
+    public interface Attribute {
+        default String name() {
+            return apply()[0];
+        }
+        default String value() {
+            return apply()[1];
+        }
+        default void set(Map<String, String> map) {
+            map.put(name(), value());
+        }
+        String[] apply();
+    }
+
+    public static Attribute attribute(String name, String value) {
+        return () -> new String[]{name, value};
     }
 
     public static Element accept(Iterator<Element> iterator, String... tags) {
@@ -171,18 +185,6 @@ public final class XML {
             return DocumentBuilderFactory.newInstance().newDocumentBuilder();
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage(), e);
-        }
-    }
-
-    private static class Attr {
-        final String name;
-        final String value;
-        Attr(String name, String value) {
-            this.name = name;
-            this.value = value;
-        }
-        void set(Map<String, String> map) {
-            map.put(name, value);
         }
     }
 
