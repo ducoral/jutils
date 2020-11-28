@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.github.ducoral.jutils.Constants.Properties.*;
+import static com.github.ducoral.jutils.Constants.Strings.*;
 
 public final class Core {
 
@@ -200,9 +200,9 @@ public final class Core {
         else if (value instanceof Map)
             return json((Map<?, ?>) value);
         else if (value instanceof Time)
-            return json(format((Time) value, property(Constants.Properties.JSON_TIME_FORMAT)));
+            return json(format((Time) value, property(Constants.Strings.JSON_TIME_FORMAT)));
         else if (value instanceof Date)
-            return json(format((Date) value, property(Constants.Properties.JSON_DATETIME_FORMAT)));
+            return json(format((Date) value, property(Constants.Strings.JSON_DATETIME_FORMAT)));
         else if (isPrimitiveType(value)) {
             String str = String.valueOf(value);
             return value instanceof String ? '"' + str + '"' : str;

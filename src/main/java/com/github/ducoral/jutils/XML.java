@@ -14,6 +14,7 @@ import java.io.StringReader;
 import java.util.*;
 
 import static com.github.ducoral.jutils.Core.*;
+import static com.github.ducoral.jutils.Constants.Strings.*;
 
 public final class XML {
 
@@ -170,14 +171,14 @@ public final class XML {
         if (iterator.hasNext())
             return accept(iterator.next(), tags);
         else
-            throw new Oops("TAG faltante: %s", Arrays.asList(tags).toArray());
+            throw Oops.of(XML_MISSING_TAG, Arrays.asList(tags).toArray());
     }
 
     public static Element accept(Element element, String... tags) {
         if (isOneOf(element.name, tags))
             return element;
         else
-            throw new Oops("Era esperada a TAG %s porém encontrou %s", element.name, tags);
+            throw Oops.of(XML_EXPECTED_TAG, element.name, tags);
     }
 
     private static DocumentBuilder builder() {

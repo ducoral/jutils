@@ -4,7 +4,7 @@ import java.util.function.Predicate;
 
 import static java.lang.Character.*;
 import static com.github.ducoral.jutils.Core.*;
-import static com.github.ducoral.jutils.Constants.Properties.*;
+import static com.github.ducoral.jutils.Constants.Strings.*;
 
 public class Scanner {
 

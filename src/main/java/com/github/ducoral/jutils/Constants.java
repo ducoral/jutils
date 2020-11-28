@@ -7,10 +7,10 @@ import static com.github.ducoral.jutils.Core.*;
 class Constants {
 
     static class Patterns {
-        public static final Pattern PARAM = Pattern.compile(property(Properties.PARAM_REGEX));
+        public static final Pattern PARAM = Pattern.compile(property(Strings.PARAM_REGEX));
     }
 
-    static class Properties {
+    static class Strings {
         public static final String JSON_TIME_FORMAT = "json.time.format";
         public static final String JSON_DATETIME_FORMAT = "json.datetime.format";
         public static final String PARAM_REGEX = "param.regex";
@@ -24,5 +24,7 @@ class Constants {
         public static final String INVALID_TOKEN="invalid.token";
         public static final String INVALID_EXPECTED_TOKEN="invalid.expected.token";
         public static final String STRING_NOT_CLOSED="string.not.closed";
+        public static final String XML_MISSING_TAG="xml.missing.tag";
+        public static final String XML_EXPECTED_TAG = "xml.expected.tag";
     }
 }

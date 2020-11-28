@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
 
-import static com.github.ducoral.jutils.Constants.Properties.*;
+import static com.github.ducoral.jutils.Constants.Strings.*;
 
 /* ================================================
            json ::= empty
