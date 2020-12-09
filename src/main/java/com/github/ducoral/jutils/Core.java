@@ -75,9 +75,9 @@ public final class Core {
 
     public static Object secondTimeReturns(String value) {
         return new Object() {
-            int time = 0;
+            int time = 1;
             public String toString() {
-                return time++ == 0 ? "" : value;
+                return time++ == 1 ? "" : value;
             }
         };
     }
@@ -241,10 +241,14 @@ public final class Core {
     }
 
     public static List<String> matches(Pattern pattern, String input) {
+        return matches(pattern, input, 0);
+    }
+
+    public static List<String> matches(Pattern pattern, String input, int group) {
         List<String> matches = new ArrayList<>();
         Matcher matcher = pattern.matcher(input);
         while (matcher.find())
-            matches.add(matcher.group(0));
+            matches.add(matcher.group(group));
         return matches;
     }
 
