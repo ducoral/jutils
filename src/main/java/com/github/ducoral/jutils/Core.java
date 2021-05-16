@@ -23,18 +23,25 @@ import static com.github.ducoral.jutils.Constants.Strings.*;
 
 public final class Core {
 
-    public enum Align { LEFT, CENTER, RIGHT }
-
-    static PropertyResourceBundle properties = properties("jutils");
-
-    static String property(String key, Object... args) {
-        return format(properties.getString(key), args);
-    }
-
     @Target(value = ElementType.TYPE)
     @Retention(value = RetentionPolicy.RUNTIME)
     public @interface Bean {
         Class<?> type();
+    }
+
+    @Target(value = ElementType.TYPE)
+    @Retention(value = RetentionPolicy.RUNTIME)
+    public @interface Singleton {
+    }
+
+    public enum Align { LEFT, CENTER, RIGHT }
+
+    static PropertyResourceBundle properties = properties("jutils");
+
+    static Map<Class<?>, Object> singletons = new HashMap<>();
+
+    static String property(String key, Object... args) {
+        return format(properties.getString(key), args);
     }
 
     @SuppressWarnings("unchecked")
@@ -55,6 +62,9 @@ public final class Core {
                     .orElseThrow(() -> new Oops(property(INTERFACE_MUST_BE_ANNOTATED_WITH, Bean.class.getName())));
             return create(scope, bean.type());
         }
+        boolean isSingleton = type.getAnnotation(Singleton.class) != null;
+        if (isSingleton && singletons.containsKey(type))
+            return singletons.get(type);
         Constructor<?>[] constructors = type.getDeclaredConstructors();
         if (constructors.length == 0)
             throw new Oops(property(TYPE_DOES_NOT_CONTAIN_CONSTRUCTOR, type.getName()));
@@ -65,11 +75,12 @@ public final class Core {
             Object[] args = new Object[parameters.length];
             for (int index = 0; index < args.length; index++)
                 args[index] = create(push(copy(scope), type.getName()), parameters[index].getType());
-            return constructors[0].newInstance(args);
-        } catch (Oops e) {
-            throw e;
+            Object object = constructors[0].newInstance(args);
+            if (isSingleton)
+                singletons.put(type, object);
+            return object;
         } catch (Exception e) {
-            throw Oops.of(e);
+            throw e instanceof Oops ? (Oops) e : Oops.of(e);
         }
     }
 
