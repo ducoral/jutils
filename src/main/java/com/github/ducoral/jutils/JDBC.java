@@ -26,20 +26,13 @@ public final class JDBC {
 
     public static PreparedStatement prepare(Connection connection, Object sql, Object... args) {
         try {
-            return parameter(connection.prepareStatement(sql.toString()), args);
-        } catch (Exception e) {
-            throw Oops.of(e);
-        }
-    }
-
-    public static PreparedStatement parameter(PreparedStatement st, Object... args) {
-        try {
+            PreparedStatement statement = connection.prepareStatement(sql.toString());
             for (int index = 0; index < args.length; index++)
-                st.setObject(index + 1, args[index]);
+                statement.setObject(index + 1, args[index]);
+            return statement;
         } catch (Exception e) {
             throw Oops.of(e);
         }
-        return st;
     }
 
     public static boolean execute(Connection connection, Object sql) {

@@ -16,24 +16,45 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.github.ducoral.jutils.Constants.Strings.*;
 
+/**
+ *  Módulo principal da biblioteca.
+ *
+ *  Essa classe contém Classes, Interfaces e Métodos estáticos correspondentes à utilitários diversos
+ *  e DSL que serve de base para implementação dos demais módulos da biblioteca.
+ */
 public final class Core {
 
+    /**
+     * Anotação para configurar a Classe que implementa determinada Interface.
+     */
     @Target(value = ElementType.TYPE)
     @Retention(value = RetentionPolicy.RUNTIME)
     public @interface Bean {
+
+        /**
+         * Configuração de <i>Class</i> que implementa a Interface que está sendo anotada com <i>Bean</i>.
+         *
+         * @return Class Instância de <i>Class</i> que implenta a interface anotada com <i>Bean</i>
+         */
         Class<?> type();
     }
 
+    /**
+     * Anotação para configurar que determinada Classe para que seja instanciada apena uma única vez, quando for
+     * pelo método {@link #create(Class)}
+     */
     @Target(value = ElementType.TYPE)
     @Retention(value = RetentionPolicy.RUNTIME)
     public @interface Singleton {
     }
 
+    /**
+     * <i>Enum</i> para configurar alinhamento de item na horizontal.
+     */
     public enum Align { LEFT, CENTER, RIGHT }
 
     static PropertyResourceBundle properties = properties("jutils");
@@ -44,11 +65,29 @@ public final class Core {
         return format(properties.getString(key), args);
     }
 
+    /**
+     * Retorna cópia do objeto especificado por parâmetro.
+     *
+     * Esse método cria cópia do objeto especificado por parâmetro chamando o método <i>clone</i>
+     * via <i>Reflection</i>. Portanto, espera-se que o parâmetro seja um objeto contendo a implementação
+     * do método <code>clone</code>.
+     *
+     * @param object Objeto do qual será clonado.
+     * @param <T> Tipo do objeto
+     * @return Nova instância de <code>T</code>, correspondente ao clone do objeto especificado por parâmetro.
+     */
     @SuppressWarnings("unchecked")
-    public static <T> T copy(T object) {
+    public static <T> T clone(T object) {
         return (T) invoke(object, method(object.getClass(), "clone"));
     }
 
+    /**
+     * Cria uma nova instância da classe especificada por parâmetro, injetando as depêndicas da construtora,
+     * conforme configurações via anotações {@link Bean} e {@link Singleton}.
+     *
+     * @param type <i>Class</i> correspondente ao tipo que deverá ser instanciado.
+     * @return Nova instância da classe especificada por parâmetro.
+     */
     public static Object create(Class<?> type) {
         return create(new Stack<>(), type);
     }
@@ -74,7 +113,7 @@ public final class Core {
             Parameter[] parameters = constructors[0].getParameters();
             Object[] args = new Object[parameters.length];
             for (int index = 0; index < args.length; index++)
-                args[index] = create(push(copy(scope), type.getName()), parameters[index].getType());
+                args[index] = create(push(clone(scope), type.getName()), parameters[index].getType());
             Object object = constructors[0].newInstance(args);
             if (isSingleton)
                 singletons.put(type, object);
@@ -84,6 +123,15 @@ public final class Core {
         }
     }
 
+    /**
+     * Cria um objeto com o método <i>toString()</i> implementado de tal forma que a <i>string</i> especificada
+     * por parâmetro seja retornada a partir da segunda vez em que o método é chamado. Na primeira vez e que o
+     * método <i>toString()</i> é chamado, é retornada uma <i>string</i> vazia.
+     *
+     * @param value String que será retornada a partir da segunda vez em que o método <i>toString()</i> do objeto
+     *              retornado for chamado.
+     * @return Objeto contendo implementação de <i>toString()</i> conforme regra descrita.
+     */
     public static Object secondTimeReturns(String value) {
         return new Object() {
             int time = 1;
@@ -93,10 +141,20 @@ public final class Core {
         };
     }
 
+    /**
+     * Definição de interface para concatenadores.
+     */
     public interface Appendable {
         Appendable append(Object... values);
     }
 
+    /**
+     * Implementação de {@link Appendable} que utilizada determinado separador configurado por parâmetro
+     * entre os itens concatenados.
+     *
+     * @param separator <i>String</i> correspondente ao separador dos itens concatenados.
+     * @return Instância de {@link Appendable} configurada com o separado especificado por parâmetro.
+     */
     public static Appendable appendable(String separator) {
         return new Appendable() {
             final StringBuilder builder = new StringBuilder();
@@ -129,7 +187,7 @@ public final class Core {
         return new String(new byte[length]).replace('\0', fill);
     }
 
-    public static String safe(Object value) {
+    public static String str(Object value) {
         return value == null ? "" : value.toString();
     }
 
@@ -170,7 +228,7 @@ public final class Core {
 
     public static String format(String template, Map<String, Object> scope) {
         StringBuilder result = new StringBuilder(template);
-        parameters(template).forEach(param -> replace(result, param, safe(scope.get(param))));
+        parameters(template).forEach(param -> replace(result, param, str(scope.get(param))));
         return result.toString();
     }
 
@@ -264,10 +322,7 @@ public final class Core {
     }
 
     public static List<String> parameters(String template) {
-        return matches(Constants.Patterns.PARAM, template)
-                .stream()
-                .map(param -> param.substring(2, param.length() - 1))
-                .collect(Collectors.toList());
+        return matches(Constants.Patterns.PARAM, template);
     }
 
     public static byte[] bytes(InputStream input) {
@@ -356,7 +411,7 @@ public final class Core {
     }
 
     public static MapBuilder map(Map<String, Object> source) {
-        return new DefaultMapBuilder(source);
+        return new MapBuilderImpl(source);
     }
 
     public static MapBuilder map(ResultSet rs) {
@@ -394,7 +449,7 @@ public final class Core {
     }
 
     public static <T> MockBuilder<T> mock(Class<T> type) {
-        return new DefaultMockBuilder<>(type);
+        return new MockBuilderImpl<>(type);
     }
 
     public static <T> Stack<T> push(Stack<T> stack, T value) {

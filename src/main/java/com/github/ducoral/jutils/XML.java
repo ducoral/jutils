@@ -13,9 +13,6 @@ import java.io.InputStream;
 import java.io.StringReader;
 import java.util.*;
 
-import static com.github.ducoral.jutils.Core.*;
-import static com.github.ducoral.jutils.Constants.Strings.*;
-
 public final class XML {
 
     public static class Element {
@@ -33,7 +30,7 @@ public final class XML {
 
         private Element(final Node node) {
             name = node.getNodeName();
-            value = node.hasChildNodes() ? safe(node.getFirstChild().getNodeValue()) : "";
+            value = node.hasChildNodes() ? Core.str(node.getFirstChild().getNodeValue()) : "";
             attributes = new HashMap<String, String>() {{
                 NamedNodeMap map = node.getAttributes();
                 for (int index = 0; index < map.getLength(); index++)
@@ -56,7 +53,7 @@ public final class XML {
         }
 
         private String toString(int indent, int level, Element element) {
-            String spaces = str(level * indent, ' ');
+            String spaces = Core.str(level * indent, ' ');
             final StringBuilder formatted = new StringBuilder(spaces).append('<').append(element.name);
             element.attributes.forEach((name, value) ->
                     formatted.append(' ').append(name).append("=\"").append(value).append("\""));
@@ -171,14 +168,14 @@ public final class XML {
         if (iterator.hasNext())
             return accept(iterator.next(), tags);
         else
-            throw Oops.of(XML_MISSING_TAG, Arrays.asList(tags).toArray());
+            throw Oops.of(Constants.Strings.XML_MISSING_TAG, Arrays.asList(tags).toArray());
     }
 
     public static Element accept(Element element, String... tags) {
-        if (isOneOf(element.name, tags))
+        if (Core.isOneOf(element.name, tags))
             return element;
         else
-            throw Oops.of(XML_EXPECTED_TAG, element.name, tags);
+            throw Oops.of(Constants.Strings.XML_EXPECTED_TAG, element.name, tags);
     }
 
     private static DocumentBuilder builder() {

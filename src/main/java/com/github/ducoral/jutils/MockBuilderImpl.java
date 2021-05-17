@@ -11,7 +11,7 @@ import static java.lang.reflect.Proxy.newProxyInstance;
 import static java.util.Objects.nonNull;
 import static com.github.ducoral.jutils.Core.*;
 
-class DefaultMockBuilder<T> implements MockBuilder<T>, InvocationHandler {
+class MockBuilderImpl<T> implements MockBuilder<T>, InvocationHandler {
 
     private final ClassLoader loader;
 
@@ -49,8 +49,8 @@ class DefaultMockBuilder<T> implements MockBuilder<T>, InvocationHandler {
     }
 
     @SuppressWarnings("unchecked")
-    DefaultMockBuilder(Class<T> type) {
-        loader = DefaultMockBuilder.class.getClassLoader();
+    MockBuilderImpl(Class<T> type) {
+        loader = MockBuilderImpl.class.getClassLoader();
         interfaces = new Class[]{ type };
         mock = (T) newProxyInstance(loader, interfaces,this);
     }
