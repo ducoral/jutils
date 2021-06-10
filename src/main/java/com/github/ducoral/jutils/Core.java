@@ -29,23 +29,62 @@ import static com.github.ducoral.jutils.Constants.Strings.*;
 public final class Core {
 
     /**
-     * Anotação para configurar a Classe que implementa determinada Interface.
+     * Anotação para configurar Interface com a referência da Classe que a implementa e que deverá ser instânciada
+     * quando a mesma for especificada por parâmetro ao chamar o método {@link #create(Class)}.
+     * <br/><br/>
+     * Por exemplo: a interface <code>Config</code> e sua implementação correspondente <code>ConfigImpl</code> poderiam
+     * estar declarados da seguinte forma:<br/>
+     * <pre>
+     *     @ Bean(type = ConfigImpl.class)
+     *     interface Config {
+     *         String value(String property);
+     *     }
+     *
+     *    class ConfigImpl implements Config {
+     *        Map&lt;String, String&gt; properties = new HashMap<>();
+     *        @ Overrite
+     *        String value(String property) {
+     *            return properties.get(property);
+     *        }
+     *    }
+     * </pre>
+     *
+     * Dessa forma, quando fosse solicitada uma instância de <code>Config</code> ao chamar o método
+     * {@link #create(Class) create(Config.class)}, seria retornada uma instância de <code>ConfigImpl</code>.
+     * </pre>
      */
     @Target(value = ElementType.TYPE)
     @Retention(value = RetentionPolicy.RUNTIME)
     public @interface Bean {
 
         /**
-         * Configuração de <i>Class</i> que implementa a Interface que está sendo anotada com <i>Bean</i>.
+         * Configuração de <i>Class</i> que implementa a Interface que está sendo anotada com {@link Bean}
          *
-         * @return Class Instância de <i>Class</i> que implenta a interface anotada com <i>Bean</i>
+         * @return Class Instância de <i>Class</i> que implenta a interface anotada com {@link Bean}
          */
         Class<?> type();
     }
 
     /**
-     * Anotação para configurar que determinada Classe para que seja instanciada apena uma única vez, quando for
-     * pelo método {@link #create(Class)}
+     * Determinada classe anotada com {@link Singleton} terá apenas uma única instância
+     * criada através do método {@link #create(Class)}.
+     * <br/><br/>
+     * Por exemplo, se considerarmos determinada classe <code>Config</code>, anotada com {@link Singleton}:
+     * <pre>
+     *     @ Singleton
+     *     class Config {
+     *     }
+     * </pre>
+     * E determinado trecho de código correspondente:
+     * <pre>
+     *     Config configA = create(Config.class);
+     *     Config configB = create(Config.class);
+     *     Config configC = create(Config.class);
+     * </pre>
+     * Concluímos que a instância atribuída à variável <code>configA</code> é exatamente a mesma atribuída
+     * à variável <code>configB</code> e <code>configC</code>. Ou seja, a classe <code>Config</code> foi instanciada
+     * e retornada na primeira vez em que o método {@link #create(Class) create(Config.class)} foi chamado. Depois essa mesma instância
+     * foi retornada nas chamadas ao método {@link #create(Class) create(Config.class)} subsequentes.
      */
     @Target(value = ElementType.TYPE)
     @Retention(value = RetentionPolicy.RUNTIME)
@@ -68,9 +107,9 @@ public final class Core {
     /**
      * Retorna cópia do objeto especificado por parâmetro.
      *
-     * Esse método cria cópia do objeto especificado por parâmetro chamando o método <i>clone</i>
-     * via <i>Reflection</i>. Portanto, espera-se que o parâmetro seja um objeto contendo a implementação
-     * do método <code>clone</code>.
+     * Esse método cria cópia do objeto especificado por parâmetro chamando o método {@link Object#clone()}
+     * via <i>Reflection</i>. Portanto, espera-se que o parâmetro seja um objeto um
+     * <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Cloneable.html">Cloneable</a>
      *
      * @param object Objeto do qual será clonado.
      * @param <T> Tipo do objeto
@@ -166,12 +205,19 @@ public final class Core {
                 return this;
             }
 
+            @Override
             public String toString() {
                 return builder.toString();
             }
         };
     }
 
+    /**
+     *
+     * @param start
+     * @param end
+     * @return
+     */
     public static Stream<Integer> range(Integer start, Integer end) {
         List<Integer> range = new ArrayList<>();
         if (start > end)
@@ -469,7 +515,7 @@ public final class Core {
     public static <T> T build(Class<T> type, Object... args) {
         Iterator<Object> params = Arrays.asList(args).iterator();
         try {
-            T object = type.newInstance();
+            T object = type.getDeclaredConstructor().newInstance();
             for (Field field : type.getDeclaredFields())
                 if (params.hasNext())
                     set(field, object, params.next());
