@@ -16,7 +16,6 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 import static com.github.ducoral.jutils.Constants.Strings.*;
 
@@ -212,33 +211,12 @@ public final class Core {
         };
     }
 
-    /**
-     *
-     * @param start
-     * @param end
-     * @return
-     */
-    public static Stream<Integer> range(Integer start, Integer end) {
-        List<Integer> range = new ArrayList<>();
-        if (start > end)
-            for (int item = start; item >= end; item--)
-                range.add(item);
-        else
-            for (int item = start; item <= end; item++)
-                range.add(item);
-        return range.stream();
-    }
-
     public static String str(int length, char fill) {
         return new String(new byte[length]).replace('\0', fill);
     }
 
     public static String str(Object value) {
         return value == null ? "" : value.toString();
-    }
-
-    public static String fill(String value, int width) {
-        return fill(value, width, Align.LEFT, ' ');
     }
 
     public static String fill(String value, int width, Align align, char withChar) {
@@ -254,6 +232,10 @@ public final class Core {
                 int half = diff / 2;
                 return str(half, withChar) + value + str(diff - half, withChar);
         }
+    }
+
+    public static String fill(String value, int width) {
+        return fill(value, width, Align.LEFT, ' ');
     }
 
     public static String replace(String str, String target, String replacement) {
@@ -301,11 +283,10 @@ public final class Core {
         return false;
     }
 
-    public static boolean isPrimitiveType(Object value) {
+    public static boolean isNullOrPrimitiveType(Object value) {
         return Objects.isNull(value)
                 || value instanceof Number
                 || value instanceof CharSequence
-                || value instanceof Date
                 || value instanceof Boolean;
     }
 
@@ -318,9 +299,9 @@ public final class Core {
             return json(format((Time) value, property(Constants.Strings.JSON_TIME_FORMAT)));
         else if (value instanceof Date)
             return json(format((Date) value, property(Constants.Strings.JSON_DATETIME_FORMAT)));
-        else if (isPrimitiveType(value)) {
+        else if (isNullOrPrimitiveType(value)) {
             String str = String.valueOf(value);
-            return value instanceof String ? '"' + str + '"' : str;
+            return value instanceof CharSequence ? '"' + str + '"' : str;
         } else try {
             Class<?> type = value.getClass();
             StringBuilder builder = new StringBuilder("{");

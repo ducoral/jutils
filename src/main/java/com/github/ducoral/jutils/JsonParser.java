@@ -1,10 +1,16 @@
 package com.github.ducoral.jutils;
 
+import com.github.ducoral.jutils.Scanner.Token;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
-import static com.github.ducoral.jutils.Constants.Strings.*;
+import static com.github.ducoral.jutils.Constants.Strings.INVALID_EXPECTED_TOKEN;
+import static com.github.ducoral.jutils.Constants.Strings.INVALID_TOKEN;
 
 /* ================================================
            json ::= empty
