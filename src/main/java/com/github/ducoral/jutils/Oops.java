@@ -9,7 +9,13 @@ public class Oops extends RuntimeException {
     }
 
     public static Oops of(String key, Object... args) {
-        return new Oops(property(key, args));
+        String property = property(key, args);
+        return new Oops(property);
+    }
+
+    public static Oops of(Exception e, String key, Object... args) {
+        String property = property(key, args);
+        return new Oops(property, e);
     }
 
     public Oops(String message) {

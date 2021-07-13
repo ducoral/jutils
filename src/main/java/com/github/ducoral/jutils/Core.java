@@ -21,45 +21,47 @@ import static com.github.ducoral.jutils.Constants.Strings.*;
 
 /**
  *  Módulo principal da biblioteca.
- *
+ *  <br/><br/>
  *  Essa classe contém Classes, Interfaces e Métodos estáticos correspondentes à utilitários diversos
  *  e DSL que serve de base para implementação dos demais módulos da biblioteca.
  */
 public final class Core {
 
     /**
-     * Anotação para configurar Interface com a referência da Classe que a implementa e que deverá ser instânciada
-     * quando a mesma for especificada por parâmetro ao chamar o método {@link #create(Class)}.
+     * Anotação para configurar Interface com a referência para a classe que a implementa.
      * <br/><br/>
-     * Por exemplo: a interface <code>Config</code> e sua implementação correspondente <code>ConfigImpl</code> poderiam
-     * estar declarados da seguinte forma:<br/>
+     * Quando uma nova instância de determinada interface for solicitada ao método {@link #create(Class)},
+     * será a classe configurada em {@link Bean#type() type} que será instanciada e retornada.
+     * <br/><br/>
+     * Por exemplo, a interface <code>Config</code> e sua implementação correspondente <code>ConfigImpl</code> poderiam
+     * estar declarados da seguinte forma:<br/><br/>
      * <pre>
-     *     @ Bean(type = ConfigImpl.class)
-     *     interface Config {
-     *         String value(String property);
-     *     }
+     *   {@literal @}Bean(type = ConfigImpl.class)
+     *    interface Config {
+     *      String value(String property);
+     *    }
      *
      *    class ConfigImpl implements Config {
-     *        Map&lt;String, String&gt; properties = new HashMap<>();
-     *        @ Overrite
-     *        String value(String property) {
-     *            return properties.get(property);
-     *        }
+     *      Map&lt;String, String&gt; properties = new HashMap<>();
+     *
+     *     {@literal @}Overrite
+     *      String value(String property) {
+     *        return properties.get(property);
+     *      }
      *    }
      * </pre>
-     *
-     * Dessa forma, quando fosse solicitada uma instância de <code>Config</code> ao chamar o método
-     * {@link #create(Class) create(Config.class)}, seria retornada uma instância de <code>ConfigImpl</code>.
-     * </pre>
+     * 
+     * Sendo assim, ao solicitar uma instância de <code>Config</code>, chamando {@link #create(Class) create(Config.class)},
+     * seria retornada uma instância de <code>ConfigImpl</code>.
      */
     @Target(value = ElementType.TYPE)
     @Retention(value = RetentionPolicy.RUNTIME)
     public @interface Bean {
 
         /**
-         * Configuração de <i>Class</i> que implementa a Interface que está sendo anotada com {@link Bean}
+         * <i>Class</i> da implementação da interface anotada com {@link Bean}.
          *
-         * @return Class Instância de <i>Class</i> que implenta a interface anotada com {@link Bean}
+         * @return instância de <i>Class</i> que implementa a interface anotada.
          */
         Class<?> type();
     }
@@ -68,22 +70,25 @@ public final class Core {
      * Determinada classe anotada com {@link Singleton} terá apenas uma única instância
      * criada através do método {@link #create(Class)}.
      * <br/><br/>
-     * Por exemplo, se considerarmos determinada classe <code>Config</code>, anotada com {@link Singleton}:
+     *
+     * Por exemplo, se determinada classe <code>Config</code>, anotada com {@link Singleton}:
      * <pre>
      *     @ Singleton
      *     class Config {
      *     }
      * </pre>
-     * E determinado trecho de código correspondente:
+     *
+     * for instanciada N vezes, como da seguinte forma:
+     *
      * <pre>
      *     Config configA = create(Config.class);
      *     Config configB = create(Config.class);
      *     Config configC = create(Config.class);
      * </pre>
-     * Concluímos que a instância atribuída à variável <code>configA</code> é exatamente a mesma atribuída
-     * à variável <code>configB</code> e <code>configC</code>. Ou seja, a classe <code>Config</code> foi instanciada
-     * e retornada na primeira vez em que o método {@link #create(Class) create(Config.class)} foi chamado. Depois essa mesma instância
-     * foi retornada nas chamadas ao método {@link #create(Class) create(Config.class)} subsequentes.
+     *
+     * todas as instâncias <code>Config</code> serão referência para o mesmo objeto. Ou seja, as variáveis
+     * <code>configA</code>, <code>configB</code> e <code>configC</code> serão todas a mesma instância de
+     * <code>Config</code>.
      */
     @Target(value = ElementType.TYPE)
     @Retention(value = RetentionPolicy.RUNTIME)
@@ -95,7 +100,7 @@ public final class Core {
      */
     public enum Align { LEFT, CENTER, RIGHT }
 
-    static PropertyResourceBundle properties = properties("jutils");
+    static PropertyResourceBundle properties = properties(Core.class.getClassLoader(),"jutils");
 
     static Map<Class<?>, Object> singletons = new HashMap<>();
 
@@ -104,15 +109,13 @@ public final class Core {
     }
 
     /**
-     * Retorna cópia do objeto especificado por parâmetro.
+     * Retorna cópia do objeto especificado por parâmetro, chamando o método {@link Object#clone()}
+     * via <i>Reflection</i>. Portanto, espera-se que o parâmetro seja uma instância de
+     * <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Cloneable.html">Cloneable</a>.
      *
-     * Esse método cria cópia do objeto especificado por parâmetro chamando o método {@link Object#clone()}
-     * via <i>Reflection</i>. Portanto, espera-se que o parâmetro seja um objeto um
-     * <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Cloneable.html">Cloneable</a>
-     *
-     * @param object Objeto do qual será clonado.
-     * @param <T> Tipo do objeto
-     * @return Nova instância de <code>T</code>, correspondente ao clone do objeto especificado por parâmetro.
+     * @param object Objeto que será clonado.
+     * @param <T> tipo do objeto clonado.
+     * @return nova instância de <code>T</code>, correspondente ao clone do objeto especificado por parâmetro.
      */
     @SuppressWarnings("unchecked")
     public static <T> T clone(T object) {
@@ -124,7 +127,7 @@ public final class Core {
      * conforme configurações via anotações {@link Bean} e {@link Singleton}.
      *
      * @param type <i>Class</i> correspondente ao tipo que deverá ser instanciado.
-     * @return Nova instância da classe especificada por parâmetro.
+     * @return nova instância da classe especificada por parâmetro.
      */
     public static Object create(Class<?> type) {
         return create(new Stack<>(), type);
@@ -163,12 +166,12 @@ public final class Core {
 
     /**
      * Cria um objeto com o método <i>toString()</i> implementado de tal forma que a <i>string</i> especificada
-     * por parâmetro seja retornada a partir da segunda vez em que o método é chamado. Na primeira vez e que o
+     * por parâmetro seja retornada a partir da segunda vez em que o método é chamado. Na primeira vez em que o
      * método <i>toString()</i> é chamado, é retornada uma <i>string</i> vazia.
      *
      * @param value String que será retornada a partir da segunda vez em que o método <i>toString()</i> do objeto
      *              retornado for chamado.
-     * @return Objeto contendo implementação de <i>toString()</i> conforme regra descrita.
+     * @return objeto contendo implementação de <i>toString()</i> conforme regra descrita.
      */
     public static Object secondTimeReturns(String value) {
         return new Object() {
@@ -191,7 +194,7 @@ public final class Core {
      * entre os itens concatenados.
      *
      * @param separator <i>String</i> correspondente ao separador dos itens concatenados.
-     * @return Instância de {@link Appendable} configurada com o separado especificado por parâmetro.
+     * @return instância de {@link Appendable} configurada com o separador especificado por parâmetro.
      */
     public static Appendable appendable(String separator) {
         return new Appendable() {
@@ -211,14 +214,40 @@ public final class Core {
         };
     }
 
+    /**
+     * Retorna nova instância de <code>String</code> com tamanho <code>length</code>, preenchido
+     * com o caratere <code>fill</code>, especificados por parâmetro.
+     *
+     * @param length int correspondente ao comprimento da <code>String</code> que será retornada.
+     * @param fill char de preenchimento da <code>String</code>
+     * @return nova <code>String</code> correspondente aos parâmetros especificados.
+     */
     public static String str(int length, char fill) {
         return new String(new byte[length]).replace('\0', fill);
     }
 
+    /**
+     * Retorna instância de <code>String</code> correspondente ao resultado do método
+     * <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html#toString">Object.toString()</a>,
+     * invocado no objeto <code>value</code>, especifiado por parâmetro.
+     * @param value objeto que será convertido para <code>String</code>
+     * @return <code>String</code> correspondente ao objeto especificado por parâmetro. Se o valor de <code>value</code>
+     * for <code>null</code>, então será retornada uma <code>String</code> vazia (<code>""</code>).
+     */
     public static String str(Object value) {
         return value == null ? "" : value.toString();
     }
 
+    /**
+     * Retorna <code>String</code> de comprimento <code>width</code>, com <code>value</code> alinhado conforme
+     * <code>align</code>, com a diferença de tamanho (<code>width</code> - <code>value.length()</code>) preenchida
+     * com <code>withChar</code>.
+     * @param value <code>String</code> que será alinhada na nova <code>String</code> retornada, conforme parâmetros.
+     * @param width <code>int</code> correspondente ao comprimento da nova <code>String</code> retornada.
+     * @param align alinhamento horizontal de <code>value</code> referente à nova <code>String</code> retornada.
+     * @param withChar <code>char</code> utilizado para preencher a diferença de comprimento na nova <code>String</code>.
+     * @return nova <code>String</code> correspondente ao parâmetros especificados.
+     */
     public static String fill(String value, int width, Align align, char withChar) {
         int diff = width - value.length();
         if (diff < 1)
@@ -234,20 +263,30 @@ public final class Core {
         }
     }
 
+    /**
+     * Retorna nova <code>String</code> de comprimento <code>width</code>, contendo a <code>String</code>
+     * <code>value</code> alinhada à esquerda, contendo a diferença de comprimento preenchida com o caracter
+     * de espaço (<code>' '</code>).
+     * @param value <code>String</code> que será alinhada à esquerda na nova <code>String</code> retornada.
+     * @param width <code>int</code> correspondente ao comprimento da nova <code>String</code> retornada.
+     * @return nova <code>String</code> correspondente ao parâmetros especificados.
+     */
     public static String fill(String value, int width) {
         return fill(value, width, Align.LEFT, ' ');
     }
 
-    public static String replace(String str, String target, String replacement) {
-        int index = str.indexOf(target);
-        if (index > -1)
-            str = str.substring(0, index) + replacement + str.substring(index + target.length());
-        return str;
-    }
-
+    /**
+     * Substitui todas as ocorrências de <code>target</code> em <code>str</code> por <code>replacement</code>.
+     * @param str <code>StringBuilder</code> que será afetado pela substituição de <i>strings</i>.
+     * @param target <code>String</code> que será substituída.
+     * @param replacement <code>String</code> que será utilizada na substituição.
+     */
     public static void replace(StringBuilder str, String target, String replacement) {
         int index = str.indexOf(target);
-        str.replace(index, index + target.length(), replacement);
+        while (index > -1) {
+            str.replace(index, index + target.length(), replacement);
+            index = str.indexOf(target);
+        }
     }
 
     public static String format(String template, Pair... parameters) {
@@ -260,8 +299,14 @@ public final class Core {
         return result.toString();
     }
 
-    public static String format(String format, Object... args) {
-        return String.format(format, args);
+    public static String format(String template, Object... args) {
+        String formatted = template;
+        for (int position = 0; position < args.length; position++) {
+            String parameter = "%" + position;
+            if (formatted.contains(parameter))
+                formatted = formatted.replace(parameter, str(args[position]));
+        }
+        return formatted;
     }
 
     public static String format(Date date, String format) {
@@ -369,12 +414,11 @@ public final class Core {
         return new ByteArrayInputStream(bytes);
     }
 
-    public static PropertyResourceBundle properties(String name) {
-        ClassLoader loader = Core.class.getClassLoader();
+    public static PropertyResourceBundle properties(ClassLoader loader, String name) {
         Locale locale = Locale.getDefault();
-        URL resource = loader.getResource(format("%s_%s%s.properties", name, locale.getLanguage(), locale.getCountry()));
+        URL resource = loader.getResource(format("%0_%1%2.properties", name, locale.getLanguage(), locale.getCountry()));
         if (resource == null)
-            resource = loader.getResource(format("%s.properties", name));
+            resource = loader.getResource(format("%0.properties", name));
         if (resource == null)
             throw new Oops("Could not load property file " + name);
         try {
