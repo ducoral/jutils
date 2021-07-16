@@ -289,10 +289,32 @@ public final class Core {
         }
     }
 
+    /**
+     * Formata e retorna a <code>String</code> <code>template</code> de acordo com as instâncias de
+     * {@link Pair}, especificados por parâmetro.
+     * <br/><br/>
+     * Os parãmetros são identificados conforme expressão regular configurada em {@link Constants.RegEx#PARAM}
+     *
+     * @param template <code>String</code> que terá o parâmetros substituídos pelos respectivos valores.
+     * @param parameters instâncias de {@link Pair} correspondente aos parâmetros e seus respectivos valores.
+     * @return <code>String</code> resultante da formatação da <code>template</code>, conforme <code>parameters</code>
+     *         especificados.
+     */
     public static String format(String template, Pair... parameters) {
         return format(template, map(parameters));
     }
 
+    /**
+     * Formata e retorna a <code>String</code> <code>template</code> com os parâmetros formatados conforme
+     * {@link Map} <code>scope</code> especificado por parâmetro.
+     * <br/><br/>
+     * Os parãmetros são identificados conforme expressão regular configurada em {@link Constants.RegEx#PARAM}
+     *
+     * @param template <code>String</code> que terá o parâmetros substituídos pelos respectivos valores.
+     * @param scope instâncias de {@link Map} contendo os parâmetros e seus respectivos valores.
+     * @return <code>String</code> resultante da formatação da <code>template</code>, conforme <code>scope</code>
+     *         especificado por parâmetro.
+     */
     public static String format(String template, Map<String, Object> scope) {
         StringBuilder result = new StringBuilder(template);
         parameters(template).forEach(param -> replace(result, param, str(scope.get(param))));
@@ -381,10 +403,29 @@ public final class Core {
         return new JsonParser(new Scanner(document)).parse();
     }
 
+    /**
+     * Aplica o padrão <code>pattern</code> no <code>input</code>, especificados por parâmetro,
+     * e retorna lista de <code>String</code> contendo as ocorrências correspondentes.
+     *
+     * @param pattern instância de {@link Pattern} correspondente ao padrão a ser identificado.
+     * @param input <code>String</code> em que serão identificadas as ocorrênicas do padrão especificado.
+     * @return lista de <code>String/code> contendo os padrões identificados na <code>String</code> especificada.
+     */
     public static List<String> matches(Pattern pattern, String input) {
         return matches(pattern, input, 0);
     }
 
+    /**
+     * Aplica o padrão <code>pattern</code> no <code>input</code>, especificados por parâmetro,
+     * e retorna lista de <code>String</code> contendo as ocorrências correspondente ao grupo especificado em
+     * <code>group</code>.
+     *
+     * @param pattern instância de {@link Pattern} correspondente ao padrão a ser identificado.
+     * @param input <code>String</code> em que serão identificadas as ocorrênicas do padrão especificado.
+     * @param group int correspondente ao grupo da expressão regular que será retornado.
+     * @return lista de <code>String</code> contendo os padrões identificados na <code>String</code> <code>input</code>>,
+     *         corresponentes ao grupo <code>group</code>, especificados por parâmetro.
+     */
     public static List<String> matches(Pattern pattern, String input, int group) {
         List<String> matches = new ArrayList<>();
         Matcher matcher = pattern.matcher(input);
@@ -393,8 +434,17 @@ public final class Core {
         return matches;
     }
 
-    public static List<String> parameters(String template) {
-        return matches(Constants.Patterns.PARAM, template);
+    /**
+     * Identifica e retorna os parâmetros existentes no <code>template</code> especificado por parâmetro.
+     * <br/></br>
+     * Os parãmetros são identificados conforme expressão regular configurada em {@link Constants.RegEx#PARAM}
+     *
+     * @param template <code>String</code> da qual os parâmetros serão identificados e retornados.
+     *
+     * @return conjunto de <code>Strings</code> contendo os parâmetros identificados no <code>template</code> especificado.
+     */
+    public static Set<String> parameters(String template) {
+        return new HashSet<>(matches(Constants.Patterns.PARAM, template));
     }
 
     public static byte[] bytes(InputStream input) {
@@ -455,7 +505,6 @@ public final class Core {
             public String key() {
                 return key;
             }
-
             public Object value() {
                 return value;
             }

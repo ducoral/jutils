@@ -2,16 +2,19 @@ package com.github.ducoral.jutils;
 
 import java.util.regex.Pattern;
 
-class Constants {
+public class Constants {
 
-    static class Patterns {
-        public static final Pattern PARAM = Pattern.compile(Strings.PARAM_REGEX);
+    public static class RegEx {
+        public static final String PARAM = "\\$\\{(\\w+(\\.\\w+)*)}";
     }
 
-    static class Strings {
+    public static class Patterns {
+        public static final Pattern PARAM = Pattern.compile(RegEx.PARAM);
+    }
+
+    public static class Strings {
         public static final String JSON_TIME_FORMAT = "json.time.format";
         public static final String JSON_DATETIME_FORMAT = "json.datetime.format";
-        public static final String PARAM_REGEX = "\\$\\{(\\w+(\\.\\w+)*)\\}";
         public static final String CYCLIC_REFERENCE = "cyclic.reference";
         public static final String INTERFACE_MUST_BE_ANNOTATED_WITH = "interface.must.be.annotated.with";
         public static final String TYPE_DOES_NOT_CONTAIN_CONSTRUCTOR = "type.does.not.contain.constructor";
