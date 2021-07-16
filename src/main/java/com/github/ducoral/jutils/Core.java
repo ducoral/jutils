@@ -336,10 +336,24 @@ public final class Core {
         return new SimpleDateFormat(format).format(date);
     }
 
+    /**
+     * Retorna o objeto <code>value</code>, especificado por parâmetro, convertido para <code>String</code>,
+     * com os caracteres convertidos para minúsculo.
+     * @param value <code>Object</code> do qual será convertido para <code>String</code> com caracteres em minúsculo.
+     * @return <code>String</code> correspondente ao <code>value</code>, especificado por parâmetro, convertido para
+     *         <code>String</code>, com os caracteres convertidos para minúsculo.
+     */
     public static String lower(Object value) {
         return String.valueOf(value).toLowerCase();
     }
 
+    /**
+     * Retorna o objeto <code>value</code>, especificado por parâmetro, convertido para <code>String</code>,
+     * com os caracteres convertidos para maiúsculo.
+     * @param value <code>Object</code> do qual será convertido para <code>String</code> com caracteres em maiúsculo.
+     * @return <code>String</code> correspondente ao <code>value</code>, especificado por parâmetro, convertido para
+     *         <code>String</code>, com os caracteres convertidos para maiúsculo.
+     */
     public static String upper(Object value) {
         return String.valueOf(value).toUpperCase();
     }
@@ -448,6 +462,13 @@ public final class Core {
         return new HashSet<>(matches(Constants.Patterns.PARAM, template));
     }
 
+    /**
+     * Retorna <i>array</i> de <code>byte</code> correspondente ao conteúdo de <code>input</code> especificado por
+     * parâmetro.
+     * @param input instância de {@link InputStream} que será convertida para <code>array</code> de <code>bytes</code>
+     * @return <i>array</i> de <code>bytes</code> correspondente ao conteúdo de <code>input</code> especificado por
+     *         parâmetro.
+     */
     public static byte[] bytes(InputStream input) {
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
