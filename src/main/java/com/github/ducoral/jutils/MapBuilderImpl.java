@@ -3,10 +3,12 @@ package com.github.ducoral.jutils;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
-import static com.github.ducoral.jutils.Core.*;
+import static com.github.ducoral.jutils.Core.MapBuilder;
+import static com.github.ducoral.jutils.Core.lower;
 
 class MapBuilderImpl implements MapBuilder {
 
@@ -22,11 +24,11 @@ class MapBuilderImpl implements MapBuilder {
         return this;
     }
 
-    public MapBuilder rename(Function<String, String> renameKeyFunction) {
-        map = new HashMap<String, Object>() {{
-            for (String key : map.keySet())
-                put(renameKeyFunction.apply(key), map.get(key));
-        }};
+    public MapBuilder rename(UnaryOperator<String> renameKeyFunction) {
+        Map<String, Object> newMap = new HashMap<>();
+        for (Entry<String, Object> entry : map.entrySet())
+            newMap.put(renameKeyFunction.apply(entry.getKey()), map.get(entry.getKey()));
+        map = newMap;
         return this;
     }
 

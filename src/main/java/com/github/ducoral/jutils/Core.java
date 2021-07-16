@@ -14,6 +14,7 @@ import java.sql.Time;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -130,10 +131,10 @@ public final class Core {
      * @return nova instância da classe especificada por parâmetro.
      */
     public static Object create(Class<?> type) {
-        return create(new Stack<>(), type);
+        return create(new ArrayDeque<>(), type);
     }
 
-    private static Object create(Stack<String> scope, Class<?> type) {
+    private static Object create(Deque<String> scope, Class<?> type) {
         if (scope.contains(type.getName()))
             throw new Oops(property(CYCLIC_REFERENCE, scope.toString()));
         if (type.isInterface()) {
@@ -456,7 +457,7 @@ public final class Core {
                 baos.write(buffer, 0, len);
             return baos.toByteArray();
         } catch (Exception e) {
-            throw new RuntimeException(e.getMessage(), e);
+            throw new Oops(e.getMessage(), e);
         }
     }
 
@@ -489,10 +490,10 @@ public final class Core {
     }
 
     public static List<Object> values(List<String> keys, Map<String, Object> map) {
-        return new ArrayList<Object>() {{
-            for (String key : keys)
-                add(map.get(key));
-        }};
+        List<Object> list = new ArrayList<>();
+        for (String key : keys)
+            list.add(map.get(key));
+        return list;
     }
 
     public interface Pair {
@@ -512,16 +513,16 @@ public final class Core {
     }
 
     public static Map<String, Object> map(Pair... pairs) {
-        return new HashMap<String, Object>() {{
-            for (Pair pair : pairs)
-                put(pair.key(), pair.value());
-        }};
+        Map<String, Object> params = new HashMap<>();
+        for (Pair pair : pairs)
+            params.put(pair.key(), pair.value());
+        return params;
     }
 
     public interface MapBuilder {
         MapBuilder pair(String key, Object value);
         MapBuilder merge(Map<String, Object> map);
-        MapBuilder rename(Function<String, String> renameKeyFunction);
+        MapBuilder rename(UnaryOperator<String> renameKeyFunction);
         MapBuilder ignore();
         Map<String, Object> done();
     }
@@ -536,11 +537,10 @@ public final class Core {
 
     public static MapBuilder map(ResultSet rs) {
         try {
-            HashMap<String, Object> resultSetMap = new HashMap<String, Object>() {{
-                ResultSetMetaData metaData = rs.getMetaData();
-                for (int index = 1; index <= metaData.getColumnCount(); index++)
-                    put(metaData.getColumnName(index), rs.getObject(index));
-            }};
+            ResultSetMetaData metaData = rs.getMetaData();
+            HashMap<String, Object> resultSetMap = new HashMap<>();
+            for (int index = 1; index <= metaData.getColumnCount(); index++)
+                resultSetMap.put(metaData.getColumnName(index), rs.getObject(index));
             return map(resultSetMap);
         } catch (Exception e) {
             throw Oops.of(e);
@@ -556,7 +556,6 @@ public final class Core {
 
     public static Object invoke(Object object, Method method, Object... parameters) {
         try {
-            method.setAccessible(true);
             return method.invoke(object, parameters);
         } catch (Exception e) {
             throw Oops.of(e);
@@ -572,9 +571,9 @@ public final class Core {
         return new MockBuilderImpl<>(type);
     }
 
-    public static <T> Stack<T> push(Stack<T> stack, T value) {
-        stack.push(value);
-        return stack;
+    public static <T> Deque<T> push(Deque<T> deque, T value) {
+        deque.push(value);
+        return deque;
     }
 
     public static void set(Field field, Object object, Object value) {
