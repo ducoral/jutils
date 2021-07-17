@@ -120,7 +120,10 @@ public final class Core {
      */
     @SuppressWarnings("unchecked")
     public static <T> T clone(T object) {
-        return (T) invoke(object, method(object.getClass(), "clone"));
+        Method clone = method(object.getClass(), "clone");
+        if (clone == null)
+            throw Oops.of(TYPE_DOES_NOT_CONTAIN_CLONE_METHOD, object.getClass());
+        return (T) invoke(object, clone);
     }
 
     /**
@@ -136,7 +139,7 @@ public final class Core {
 
     private static Object create(Deque<String> scope, Class<?> type) {
         if (scope.contains(type.getName()))
-            throw new Oops(property(CYCLIC_REFERENCE, scope.toString()));
+            throw Oops.of(property(CYCLIC_REFERENCE, scope.toString()));
         if (type.isInterface()) {
             Bean bean = Optional
                     .of(type.getAnnotation(Bean.class))
@@ -148,9 +151,9 @@ public final class Core {
             return singletons.get(type);
         Constructor<?>[] constructors = type.getDeclaredConstructors();
         if (constructors.length == 0)
-            throw new Oops(property(TYPE_DOES_NOT_CONTAIN_CONSTRUCTOR, type.getName()));
+            throw Oops.of(TYPE_DOES_NOT_CONTAIN_CONSTRUCTOR, type.getName());
         else if (constructors.length > 1)
-            throw new Oops(property(TYPE_CONTAINS_MORE_THAN_ONE_CONSTRUCTOR, type.getName(), Arrays.toString(constructors)));
+            throw Oops.of(TYPE_CONTAINS_MORE_THAN_ONE_CONSTRUCTOR, type.getName(), Arrays.toString(constructors));
         try {
             Parameter[] parameters = constructors[0].getParameters();
             Object[] args = new Object[parameters.length];
@@ -358,6 +361,13 @@ public final class Core {
         return String.valueOf(value).toUpperCase();
     }
 
+    /**
+     * Verifica se a <code>String</code> <code>value</code> contém pelo menos uma das <code>Strings</code>
+     * especifica em <code>values</code>.
+     * @param value <code>String</code> em que será verificada a existência de pelo menos um item do <i>array</i> <code>values</code>.
+     * @param values <i>array</i> contendo as <code>Strings</code> que serão verificadas.
+     * @return <code>true</code> se <code>value</code> contiver pelo menos uma das <code>Strings</code> especificadas em <code>values</code>.
+     */
     public static boolean isOneOf(String value, String... values) {
         for (String item : values)
             if (Objects.equals(value, item))
@@ -365,6 +375,12 @@ public final class Core {
         return false;
     }
 
+    /**
+     * Verifica se <code>value</code> é valor <code>null</code> ou instância de classes correspondentes
+     * ao tipos primitivos do Java, tais como {@link Number}, {@link CharSequence} e {@link Boolean}.
+     * @param value <code>Object</code> que terá o tipo verificado.
+     * @return <code>true</code> <code>value</code> for instância de classe de tipo primitivo do Java.
+     */
     public static boolean isNullOrPrimitiveType(Object value) {
         return Objects.isNull(value)
                 || value instanceof Number
@@ -372,6 +388,11 @@ public final class Core {
                 || value instanceof Boolean;
     }
 
+    /**
+     * Converte objeto Java em de objeto JSON.
+     * @param value objeto Java que será convertiddo para objeto JSON.
+     * @return <code>String</code> no formato JSON contendo o objeto especificado em <code>value</code>.
+     */
     public static String json(Object value) {
         if (value instanceof List)
             return json((List<?>) value);
@@ -396,6 +417,11 @@ public final class Core {
         }
     }
 
+    /**
+     * Converte um {@link List} em <i>array</i> JSON.
+     * @param list {@link List} que será convertido em <i>array</i> JSON
+     * @return <code>String</code> contendo o <i>array</i> JSON correspondente ao {@link List} especificado por parâmetro.
+     */
     private static String json(List<?> list) {
         StringBuilder array = new StringBuilder("[");
         Object comma = secondTimeReturns(",");
@@ -403,6 +429,11 @@ public final class Core {
         return array.append("]").toString();
     }
 
+    /**
+     * Converte um {@link Map} em objeto JSON.
+     * @param map {@link Map} que será convertido para objeto JSON.
+     * @return String contendo o objeto JSON correspondente ao {@link Map} especificado por parâmetro.
+     */
     private static String json(Map<?, ?> map) {
         StringBuilder object = new StringBuilder("{");
         Object comma = secondTimeReturns(",");
@@ -414,6 +445,11 @@ public final class Core {
         return object.append("}").toString();
     }
 
+    /**
+     * Converte <code>String</code> no formato JSON para instância de {@link Object}.
+     * @param document <code>String</code> no formado JSON.
+     * @return instância de {@link Object} correspondente o documento JSON especificado por parâmetro.
+     */
     public static Object parseJson(String document) {
         return new JsonParser(new Scanner(document)).parse();
     }
@@ -431,7 +467,7 @@ public final class Core {
     }
 
     /**
-     * Aplica o padrão <code>pattern</code> no <code>input</code>, especificados por parâmetro,
+     * Aplica o padrão <code>pattern</code> no <code>input</code>, ambos especificados por parâmetro,
      * e retorna lista de <code>String</code> contendo as ocorrências correspondente ao grupo especificado em
      * <code>group</code>.
      *
@@ -482,6 +518,11 @@ public final class Core {
         }
     }
 
+    /**
+     * Retorna instância de {@link InputStream} contendo os <code>bytes</code> especificados por parâmetro.
+     * @param bytes <i>array</i> de <code>byte</code> quer será encapsulado na instância de {@link InputStream}.
+     * @return instância de {@link InputStream} contendo os <code>bytes</code> especificados por parâmetro.
+     */
     public static InputStream stream(byte[] bytes) {
         return new ByteArrayInputStream(bytes);
     }

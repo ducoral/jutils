@@ -28,8 +28,9 @@ public final class Constants {
         public static final String JSON_DATETIME_FORMAT = "json.datetime.format";
         public static final String CYCLIC_REFERENCE = "cyclic.reference";
         public static final String INTERFACE_MUST_BE_ANNOTATED_WITH = "interface.must.be.annotated.with";
-        public static final String TYPE_DOES_NOT_CONTAIN_CONSTRUCTOR = "type.does.not.contain.constructor";
         public static final String TYPE_CONTAINS_MORE_THAN_ONE_CONSTRUCTOR = "type.contains.more.than.one.constructor";
+        public static final String TYPE_DOES_NOT_CONTAIN_CONSTRUCTOR = "type.does.not.contain.constructor";
+        public static final String TYPE_DOES_NOT_CONTAIN_CLONE_METHOD = "type.does.not.contain.clone.method";
         public static final String INCORRECT_OPERATOR = "incorrect.operator";
         public static final String INVALID_CHARACTER = "invalid.character";
         public static final String INVALID_DECIMAL = "invalid.decimal";
