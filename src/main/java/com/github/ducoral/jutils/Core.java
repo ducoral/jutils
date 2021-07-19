@@ -5,13 +5,17 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.lang.reflect.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Time;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
@@ -51,7 +55,7 @@ public final class Core {
      *      }
      *    }
      * </pre>
-     * 
+     *
      * Sendo assim, ao solicitar uma instância de <code>Config</code>, chamando {@link #create(Class) create(Config.class)},
      * seria retornada uma instância de <code>ConfigImpl</code>.
      */
@@ -164,7 +168,9 @@ public final class Core {
                 singletons.put(type, object);
             return object;
         } catch (Exception e) {
-            throw e instanceof Oops ? (Oops) e : Oops.of(e);
+            throw e instanceof Oops
+                    ? (Oops) e
+                    : Oops.of(e);
         }
     }
 
@@ -219,38 +225,38 @@ public final class Core {
     }
 
     /**
-     * Retorna nova instância de <code>String</code> com tamanho <code>length</code>, preenchido
+     * Retorna nova instância de {@link String} com tamanho <code>length</code>, preenchido
      * com o caratere <code>fill</code>, especificados por parâmetro.
      *
-     * @param length int correspondente ao comprimento da <code>String</code> que será retornada.
-     * @param fill char de preenchimento da <code>String</code>
-     * @return nova <code>String</code> correspondente aos parâmetros especificados.
+     * @param length int correspondente ao comprimento da {@link String} que será retornada.
+     * @param fill char de preenchimento da {@link String}
+     * @return nova {@link String} correspondente aos parâmetros especificados.
      */
     public static String str(int length, char fill) {
         return new String(new byte[length]).replace('\0', fill);
     }
 
     /**
-     * Retorna instância de <code>String</code> correspondente ao resultado do método
+     * Retorna instância de {@link String} correspondente ao resultado do método
      * <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html#toString">Object.toString()</a>,
      * invocado no objeto <code>value</code>, especifiado por parâmetro.
-     * @param value objeto que será convertido para <code>String</code>
-     * @return <code>String</code> correspondente ao objeto especificado por parâmetro. Se o valor de <code>value</code>
-     * for <code>null</code>, então será retornada uma <code>String</code> vazia (<code>""</code>).
+     * @param value objeto que será convertido para {@link String}
+     * @return {@link String} correspondente ao objeto especificado por parâmetro. Se o valor de <code>value</code>
+     * for <code>null</code>, então será retornada uma {@link String} vazia (<code>""</code>).
      */
     public static String str(Object value) {
         return value == null ? "" : value.toString();
     }
 
     /**
-     * Retorna <code>String</code> de comprimento <code>width</code>, com <code>value</code> alinhado conforme
+     * Retorna {@link String} de comprimento <code>width</code>, com <code>value</code> alinhado conforme
      * <code>align</code>, com a diferença de tamanho (<code>width</code> - <code>value.length()</code>) preenchida
      * com <code>withChar</code>.
-     * @param value <code>String</code> que será alinhada na nova <code>String</code> retornada, conforme parâmetros.
-     * @param width <code>int</code> correspondente ao comprimento da nova <code>String</code> retornada.
-     * @param align alinhamento horizontal de <code>value</code> referente à nova <code>String</code> retornada.
-     * @param withChar <code>char</code> utilizado para preencher a diferença de comprimento na nova <code>String</code>.
-     * @return nova <code>String</code> correspondente ao parâmetros especificados.
+     * @param value {@link String} que será alinhada na nova {@link String} retornada, conforme parâmetros.
+     * @param width <code>int</code> correspondente ao comprimento da nova {@link String} retornada.
+     * @param align alinhamento horizontal de <code>value</code> referente à nova {@link String} retornada.
+     * @param withChar <code>char</code> utilizado para preencher a diferença de comprimento na nova {@link String}.
+     * @return nova {@link String} correspondente ao parâmetros especificados.
      */
     public static String fill(String value, int width, Align align, char withChar) {
         int diff = width - value.length();
@@ -268,12 +274,12 @@ public final class Core {
     }
 
     /**
-     * Retorna nova <code>String</code> de comprimento <code>width</code>, contendo a <code>String</code>
+     * Retorna nova {@link String} de comprimento <code>width</code>, contendo a {@link String}
      * <code>value</code> alinhada à esquerda, contendo a diferença de comprimento preenchida com o caracter
      * de espaço (<code>' '</code>).
-     * @param value <code>String</code> que será alinhada à esquerda na nova <code>String</code> retornada.
-     * @param width <code>int</code> correspondente ao comprimento da nova <code>String</code> retornada.
-     * @return nova <code>String</code> correspondente ao parâmetros especificados.
+     * @param value {@link String} que será alinhada à esquerda na nova {@link String} retornada.
+     * @param width <code>int</code> correspondente ao comprimento da nova {@link String} retornada.
+     * @return nova {@link String} correspondente ao parâmetros especificados.
      */
     public static String fill(String value, int width) {
         return fill(value, width, Align.LEFT, ' ');
@@ -282,8 +288,8 @@ public final class Core {
     /**
      * Substitui todas as ocorrências de <code>target</code> em <code>str</code> por <code>replacement</code>.
      * @param str <code>StringBuilder</code> que será afetado pela substituição de <i>strings</i>.
-     * @param target <code>String</code> que será substituída.
-     * @param replacement <code>String</code> que será utilizada na substituição.
+     * @param target {@link String} que será substituída.
+     * @param replacement {@link String} que será utilizada na substituição.
      */
     public static void replace(StringBuilder str, String target, String replacement) {
         int index = str.indexOf(target);
@@ -294,14 +300,13 @@ public final class Core {
     }
 
     /**
-     * Formata e retorna a <code>String</code> <code>template</code> de acordo com as instâncias de
+     * Formata e retorna a {@link String} <code>template</code> de acordo com as instâncias de
      * {@link Pair}, especificados por parâmetro.
      * <br/><br/>
-     * Os parãmetros são identificados conforme expressão regular configurada em {@link Constants.RegEx#PARAM}
-     *
-     * @param template <code>String</code> que terá o parâmetros substituídos pelos respectivos valores.
+     * Os parâmetros são identificados conforme expressão regular configurada em {@link Constants.RegEx#PARAM}
+     * @param template {@link String} que terá o parâmetros substituídos pelos respectivos valores.
      * @param parameters instâncias de {@link Pair} correspondente aos parâmetros e seus respectivos valores.
-     * @return <code>String</code> resultante da formatação da <code>template</code>, conforme <code>parameters</code>
+     * @return {@link String} resultante da formatação da <code>template</code>, conforme <code>parameters</code>
      *         especificados.
      */
     public static String format(String template, Pair... parameters) {
@@ -309,14 +314,13 @@ public final class Core {
     }
 
     /**
-     * Formata e retorna a <code>String</code> <code>template</code> com os parâmetros formatados conforme
-     * {@link Map} <code>scope</code> especificado por parâmetro.
+     * Formata e retorna a {@link String} <code>template</code> de acordo com os parâmetros configurados em
+     * {@link Map} <code>scope</code>, especificado por parâmetro.
      * <br/><br/>
-     * Os parãmetros são identificados conforme expressão regular configurada em {@link Constants.RegEx#PARAM}
-     *
-     * @param template <code>String</code> que terá o parâmetros substituídos pelos respectivos valores.
+     * Os parâmetros são identificados conforme expressão regular configurada em {@link Constants.RegEx#PARAM}
+     * @param template {@link String} que terá o parâmetros substituídos pelos respectivos valores.
      * @param scope instâncias de {@link Map} contendo os parâmetros e seus respectivos valores.
-     * @return <code>String</code> resultante da formatação da <code>template</code>, conforme <code>scope</code>
+     * @return {@link String} resultante da formatação da <code>template</code>, conforme <code>scope</code>
      *         especificado por parâmetro.
      */
     public static String format(String template, Map<String, Object> scope) {
@@ -325,6 +329,17 @@ public final class Core {
         return result.toString();
     }
 
+    /**
+     * Formata e retorna a {@link String} <code>template</code> de acordo com os parâmetros especifidos em
+     * <code>args</code>.
+     * <br/><br/>
+     * Esse método espera que os parâmetros em <code>template</code> tenham a seguinte sintaxe %&lt;número&gt;, de tal
+     * forma que &lt;número&gt; representa a posição do parâmetro especificado em <code>args</code>.
+     * <br/>
+     * @param template {@link String} que será formatada.
+     * @param args <i>array</i> de {@link Object} correspondentes aos parâmetros na formação de <code>template</code>.
+     * @return {@link String} <code>template</code> formatada conforme parâmetros especificados em <code>args</code>.
+     */
     public static String format(String template, Object... args) {
         String formatted = template;
         for (int position = 0; position < args.length; position++) {
@@ -335,36 +350,42 @@ public final class Core {
         return formatted;
     }
 
+    /**
+     * Retorna {@link String} contendo <code>date</code> formatada conforme <code>format</code>.
+     * @param date instância de {@link Date} que será formatada.
+     * @param format {@link String} contendo o formato que será aplicado na formatação da data.
+     * @return {@link String} resultante da formatação da data especificada por parâmetro.
+     */
     public static String format(Date date, String format) {
         return new SimpleDateFormat(format).format(date);
     }
 
     /**
-     * Retorna o objeto <code>value</code>, especificado por parâmetro, convertido para <code>String</code>,
+     * Retorna o objeto <code>value</code>, especificado por parâmetro, convertido para {@link String},
      * com os caracteres convertidos para minúsculo.
-     * @param value <code>Object</code> do qual será convertido para <code>String</code> com caracteres em minúsculo.
-     * @return <code>String</code> correspondente ao <code>value</code>, especificado por parâmetro, convertido para
-     *         <code>String</code>, com os caracteres convertidos para minúsculo.
+     * @param value {@link Object} do qual será convertido para {@link String} com caracteres em minúsculo.
+     * @return {@link String} correspondente ao <code>value</code>, especificado por parâmetro, convertido para
+     *         {@link String}, com os caracteres convertidos para minúsculo.
      */
     public static String lower(Object value) {
         return String.valueOf(value).toLowerCase();
     }
 
     /**
-     * Retorna o objeto <code>value</code>, especificado por parâmetro, convertido para <code>String</code>,
+     * Retorna o objeto <code>value</code>, especificado por parâmetro, convertido para {@link String},
      * com os caracteres convertidos para maiúsculo.
-     * @param value <code>Object</code> do qual será convertido para <code>String</code> com caracteres em maiúsculo.
-     * @return <code>String</code> correspondente ao <code>value</code>, especificado por parâmetro, convertido para
-     *         <code>String</code>, com os caracteres convertidos para maiúsculo.
+     * @param value {@link Object} do qual será convertido para {@link String} com caracteres em maiúsculo.
+     * @return {@link String} correspondente ao <code>value</code>, especificado por parâmetro, convertido para
+     *         {@link String}, com os caracteres convertidos para maiúsculo.
      */
     public static String upper(Object value) {
         return String.valueOf(value).toUpperCase();
     }
 
     /**
-     * Verifica se a <code>String</code> <code>value</code> contém pelo menos uma das <code>Strings</code>
+     * Verifica se a {@link String} <code>value</code> contém pelo menos uma das <code>Strings</code>
      * especifica em <code>values</code>.
-     * @param value <code>String</code> em que será verificada a existência de pelo menos um item do <i>array</i> <code>values</code>.
+     * @param value {@link String} em que será verificada a existência de pelo menos um item do <i>array</i> <code>values</code>.
      * @param values <i>array</i> contendo as <code>Strings</code> que serão verificadas.
      * @return <code>true</code> se <code>value</code> contiver pelo menos uma das <code>Strings</code> especificadas em <code>values</code>.
      */
@@ -378,7 +399,7 @@ public final class Core {
     /**
      * Verifica se <code>value</code> é valor <code>null</code> ou instância de classes correspondentes
      * ao tipos primitivos do Java, tais como {@link Number}, {@link CharSequence} e {@link Boolean}.
-     * @param value <code>Object</code> que terá o tipo verificado.
+     * @param value {@link Object} que terá o tipo verificado.
      * @return <code>true</code> <code>value</code> for instância de classe de tipo primitivo do Java.
      */
     public static boolean isNullOrPrimitiveType(Object value) {
@@ -391,7 +412,7 @@ public final class Core {
     /**
      * Converte objeto Java em de objeto JSON.
      * @param value objeto Java que será convertiddo para objeto JSON.
-     * @return <code>String</code> no formato JSON contendo o objeto especificado em <code>value</code>.
+     * @return {@link String} no formato JSON contendo o objeto especificado em <code>value</code>.
      */
     public static String json(Object value) {
         if (value instanceof List)
@@ -402,6 +423,8 @@ public final class Core {
             return json(format((Time) value, property(Constants.Strings.JSON_TIME_FORMAT)));
         else if (value instanceof Date)
             return json(format((Date) value, property(Constants.Strings.JSON_DATETIME_FORMAT)));
+        else if (value instanceof LocalDate)
+            return json(((LocalDate) value).toString());
         else if (isNullOrPrimitiveType(value)) {
             String str = String.valueOf(value);
             return value instanceof CharSequence ? '"' + str + '"' : str;
@@ -420,7 +443,7 @@ public final class Core {
     /**
      * Converte um {@link List} em <i>array</i> JSON.
      * @param list {@link List} que será convertido em <i>array</i> JSON
-     * @return <code>String</code> contendo o <i>array</i> JSON correspondente ao {@link List} especificado por parâmetro.
+     * @return {@link String} contendo o <i>array</i> JSON correspondente ao {@link List} especificado por parâmetro.
      */
     private static String json(List<?> list) {
         StringBuilder array = new StringBuilder("[");
@@ -446,8 +469,8 @@ public final class Core {
     }
 
     /**
-     * Converte <code>String</code> no formato JSON para instância de {@link Object}.
-     * @param document <code>String</code> no formado JSON.
+     * Converte {@link String} no formato JSON para instância de {@link Object}.
+     * @param document {@link String} no formado JSON.
      * @return instância de {@link Object} correspondente o documento JSON especificado por parâmetro.
      */
     public static Object parseJson(String document) {
@@ -456,11 +479,11 @@ public final class Core {
 
     /**
      * Aplica o padrão <code>pattern</code> no <code>input</code>, especificados por parâmetro,
-     * e retorna lista de <code>String</code> contendo as ocorrências correspondentes.
+     * e retorna lista de {@link String} contendo as ocorrências correspondentes.
      *
      * @param pattern instância de {@link Pattern} correspondente ao padrão a ser identificado.
-     * @param input <code>String</code> em que serão identificadas as ocorrênicas do padrão especificado.
-     * @return lista de <code>String/code> contendo os padrões identificados na <code>String</code> especificada.
+     * @param input {@link String} em que serão identificadas as ocorrênicas do padrão especificado.
+     * @return lista de <code>String/code> contendo os padrões identificados na {@link String} especificada.
      */
     public static List<String> matches(Pattern pattern, String input) {
         return matches(pattern, input, 0);
@@ -468,13 +491,13 @@ public final class Core {
 
     /**
      * Aplica o padrão <code>pattern</code> no <code>input</code>, ambos especificados por parâmetro,
-     * e retorna lista de <code>String</code> contendo as ocorrências correspondente ao grupo especificado em
+     * e retorna lista de {@link String} contendo as ocorrências correspondente ao grupo especificado em
      * <code>group</code>.
      *
      * @param pattern instância de {@link Pattern} correspondente ao padrão a ser identificado.
-     * @param input <code>String</code> em que serão identificadas as ocorrênicas do padrão especificado.
+     * @param input {@link String} em que serão identificadas as ocorrênicas do padrão especificado.
      * @param group int correspondente ao grupo da expressão regular que será retornado.
-     * @return lista de <code>String</code> contendo os padrões identificados na <code>String</code> <code>input</code>>,
+     * @return lista de {@link String} contendo os padrões identificados na {@link String} <code>input</code>>,
      *         corresponentes ao grupo <code>group</code>, especificados por parâmetro.
      */
     public static List<String> matches(Pattern pattern, String input, int group) {
@@ -490,7 +513,7 @@ public final class Core {
      * <br/></br>
      * Os parãmetros são identificados conforme expressão regular configurada em {@link Constants.RegEx#PARAM}
      *
-     * @param template <code>String</code> da qual os parâmetros serão identificados e retornados.
+     * @param template {@link String} da qual os parâmetros serão identificados e retornados.
      *
      * @return conjunto de <code>Strings</code> contendo os parâmetros identificados no <code>template</code> especificado.
      */
@@ -527,6 +550,13 @@ public final class Core {
         return new ByteArrayInputStream(bytes);
     }
 
+    /**
+     * Retorna nova instância de {@link PropertyResourceBundle} contendo o arquivo <code>*.properties</code> com
+     * o <code>nome</code> especificado.
+     * @param loader instância de {@link ClassLoader} a partir do qual o arquivo <code>*.properties</code> será carregado.
+     * @param name {@link String} contendo o nome do arquivo <code>*.properties</code> será carregado.
+     * @return instância de {@link PropertyResourceBundle}.
+     */
     public static PropertyResourceBundle properties(ClassLoader loader, String name) {
         Locale locale = Locale.getDefault();
         URL resource = loader.getResource(format("%0_%1%2.properties", name, locale.getLanguage(), locale.getCountry()));
@@ -543,7 +573,16 @@ public final class Core {
 
     @FunctionalInterface
     public interface Command {
+
         void execute();
+
+        default Command andThen(Command after) {
+            Objects.requireNonNull(after);
+            return () -> {
+                this.execute();
+                after.execute();
+            };
+        }
     }
 
     public static void times(int times, Command command) {
